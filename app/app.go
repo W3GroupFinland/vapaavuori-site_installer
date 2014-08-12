@@ -2,7 +2,7 @@ package app
 
 import (
 	a "github.com/tuomasvapaavuori/site_installer/app/app_base"
-	"github.com/tuomasvapaavuori/site_installer/app/modules/user"
+	"github.com/tuomasvapaavuori/site_installer/app/models"
 )
 
 type Application struct {
@@ -27,7 +27,7 @@ func Init() *Application {
 
 func (a *Application) Run() {
 	//db.CreateDatabase("testitieto")
-	u := user.User{Username: "hostmaster2", Password: "fastword"}
+	u := models.User{Username: "hostmaster2", Password: "fastword"}
 	a.Base.DataStore.CreateUserOnHosts(&u, []string{"localhost", "127.0.0.1"})
 	a.Base.DataStore.GrantUserPrivilegesOnHosts(&u, "testitieto2", []string{"localhost", "127.0.0.1"}, []string{"ALL"}, true)
 	defer a.Base.DataStore.DB.Close()

@@ -1,4 +1,4 @@
-package app_base
+package utils
 
 import (
 	"crypto/rand"

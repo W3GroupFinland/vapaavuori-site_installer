@@ -5,8 +5,7 @@ import (
 	"errors"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
-	//a "github.com/tuomasvapaavuori/site_installer/app/app_base"
-	"github.com/tuomasvapaavuori/site_installer/app/modules/user"
+	"github.com/tuomasvapaavuori/site_installer/app/models"
 	"log"
 )
 
@@ -108,7 +107,7 @@ func (d *DataStore) CreateDatabase(name string) error {
 	return nil
 }
 
-func (d *DataStore) CreateUserOnHosts(u *user.User, hosts []string) error {
+func (d *DataStore) CreateUserOnHosts(u *models.User, hosts []string) error {
 	tx, err := d.DB.Begin()
 	if err != nil {
 		log.Println(err)
@@ -138,7 +137,7 @@ func (d *DataStore) CreateUserOnHosts(u *user.User, hosts []string) error {
 	return nil
 }
 
-func (d *DataStore) CreateUser(tx *sql.Tx, u *user.User, host string) error {
+func (d *DataStore) CreateUser(tx *sql.Tx, u *models.User, host string) error {
 	q := fmt.Sprintf("CREATE USER '%v'@'%v' IDENTIFIED BY '%v'", u.Username, host, u.Password)
 
 	res, err := tx.Exec(q)
@@ -156,7 +155,7 @@ func (d *DataStore) CreateUser(tx *sql.Tx, u *user.User, host string) error {
 }
 
 func (d *DataStore) GrantUserPrivilegesOnHosts(
-	u *user.User,
+	u *models.User,
 	dbName string,
 	hosts []string,
 	privileges []string,
