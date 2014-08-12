@@ -1,6 +1,6 @@
 [mysql]
 user = hostmaster
-password = password
+password = hostmaster
 protocol = tcp
 host = localhost
 port = 3306

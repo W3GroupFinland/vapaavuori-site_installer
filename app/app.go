@@ -2,11 +2,13 @@ package app
 
 import (
 	a "github.com/tuomasvapaavuori/site_installer/app/app_base"
-	"github.com/tuomasvapaavuori/site_installer/app/models"
+	//"github.com/tuomasvapaavuori/site_installer/app/modules/database"
+	"log"
 )
 
 type Application struct {
-	Base *a.AppBase
+	Base      *a.AppBase
+	Arguments map[string]string
 }
 
 func Init() *Application {
@@ -26,9 +28,22 @@ func Init() *Application {
 }
 
 func (a *Application) Run() {
-	//db.CreateDatabase("testitieto")
-	u := models.User{Username: "hostmaster2", Password: "fastword"}
-	a.Base.DataStore.CreateUserOnHosts(&u, []string{"localhost", "127.0.0.1"})
-	a.Base.DataStore.GrantUserPrivilegesOnHosts(&u, "testitieto2", []string{"localhost", "127.0.0.1"}, []string{"ALL"}, true)
+	a.ParseCommandLineArgs()
+	/*newDB := database.NewDatabase(&a.Base.DataStore)
+	db, err := newDB.Randomize().
+		SetHosts([]string{"localhost", "127.0.0.1"}).
+		SetUserPrivileges([]string{"ALL"}, true).
+		CreateDatabase()
+
+	if err != nil {
+		log.Println(err, db)
+	}*/
+
+	val, err := a.GetCommandArg("--template")
+	if err != nil {
+		log.Println(err)
+	}
+	log.Println(val)
+
 	defer a.Base.DataStore.DB.Close()
 }
