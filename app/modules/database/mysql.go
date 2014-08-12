@@ -13,25 +13,6 @@ type DataStore struct {
 	DB *sql.DB
 }
 
-type DatabaseInfo struct {
-	User      string
-	Password  string
-	DbName    string
-	DataStore *DataStore
-}
-
-func NewDatabase(ds *DataStore) *DatabaseInfo {
-	return &DatabaseInfo{DataStore: ds}
-}
-
-func (di *DatabaseInfo) RandomNames() *DatabaseInfo {
-	//var userName string
-	for {
-		//userName = a.RandomString(16)
-
-	}
-}
-
 func (d *DataStore) OpenConn(user string, passWord string, protocol string, host string, port string, dbName string) {
 	dbString := fmt.Sprintf("%v:%v@%v(%v:%v)/%v",
 		user,
@@ -117,7 +98,7 @@ func (d *DataStore) CreateUserOnHosts(u *models.User, hosts []string) error {
 
 	for _, hostName := range hosts {
 		// If user already exists for hostname, continue..
-		if d.CheckIfUserExists(u.Username, hostName) {
+		if d.CheckUserExistsWithHost(u.Username, hostName) {
 			log.Printf("User %v already exists on hostname %v.", u.Username, hostName)
 			continue
 		}
@@ -187,7 +168,7 @@ func (d *DataStore) GrantUserPrivilegesOnHosts(
 
 	for _, hostName := range hosts {
 		// Continue if user doesn't exist.
-		if !d.CheckIfUserExists(u.Username, hostName) {
+		if !d.CheckUserExistsWithHost(u.Username, hostName) {
 			continue
 		}
 
@@ -214,9 +195,28 @@ func (d *DataStore) GrantUserPrivilegesOnHosts(
 	return nil
 }
 
-func (d *DataStore) CheckIfUserExists(username string, host string) bool {
+func (d *DataStore) CheckUserExistsWithHost(username string, host string) bool {
 	q := "SELECT u.Host, u.User FROM mysql.user u WHERE u.User = ? AND u.Host = ?"
 	rows, err := d.DB.Query(q, username, host)
+	if err != nil {
+		log.Println(err)
+	}
+
+	var values []bool
+	for rows.Next() {
+		values = append(values, true)
+	}
+
+	if len(values) > 0 {
+		return true
+	}
+
+	return false
+}
+
+func (d *DataStore) CheckUserExists(username string) bool {
+	q := "SELECT u.User FROM mysql.user u WHERE u.User = ?"
+	rows, err := d.DB.Query(q, username)
 	if err != nil {
 		log.Println(err)
 	}
