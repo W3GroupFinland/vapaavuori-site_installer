@@ -2,13 +2,18 @@ package app
 
 import (
 	a "github.com/tuomasvapaavuori/site_installer/app/app_base"
-	//"github.com/tuomasvapaavuori/site_installer/app/modules/database"
+	"github.com/tuomasvapaavuori/site_installer/app/controllers"
+	"github.com/tuomasvapaavuori/site_installer/app/models"
 	"log"
 )
 
 type Application struct {
-	Base      *a.AppBase
-	Arguments map[string]string
+	Base        *a.AppBase
+	Arguments   map[string]string
+	Controllers struct {
+		Drush *controllers.Drush
+		Site  *controllers.Site
+	}
 }
 
 func Init() *Application {
@@ -27,17 +32,27 @@ func Init() *Application {
 	return &a
 }
 
-func (a *Application) Run() {
-	a.ParseCommandLineArgs()
-	/*newDB := database.NewDatabase(&a.Base.DataStore)
-	db, err := newDB.Randomize().
-		SetHosts([]string{"localhost", "127.0.0.1"}).
-		SetUserPrivileges([]string{"ALL"}, true).
-		CreateDatabase()
+func (a *Application) RegisterControllers() {
+	a.Controllers.Drush = &controllers.Drush{Base: a.Base}
+	a.Controllers.Drush.Init()
+	a.Controllers.Site = &controllers.Site{Drush: a.Controllers.Drush, Base: a.Base}
+}
 
-	if err != nil {
-		log.Println(err, db)
-	}*/
+func (a *Application) Run() {
+	// Register controllers.
+	a.RegisterControllers()
+
+	a.Controllers.Drush.Which()
+	a.ParseCommandLineArgs()
+
+	// Define site install info.
+	installInfo := models.NewSiteInstallInfo()
+	installInfo.InstallRoot = "/Users/tuomas/Sites/www/drupal-7.31"
+	installInfo.InstallType = "standard"
+	installInfo.SiteName = "local.huuhaa.fi"
+	installInfo.SubDirectory = "local.huuhaa.fi"
+	// Create new site.
+	a.Controllers.Site.Create(installInfo)
 
 	val, err := a.GetCommandArg("--template")
 	if err != nil {

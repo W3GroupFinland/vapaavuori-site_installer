@@ -18,9 +18,14 @@ type Host struct {
 	Port string
 }
 
+type Drush struct {
+	Path string
+}
+
 type Config struct {
 	Host  Host
 	Mysql Mysql
+	Drush Drush
 }
 
 func NewConfig() *Config {
