@@ -46,11 +46,11 @@ func (a *Application) Run() {
 	a.ParseCommandLineArgs()
 
 	// Define site install info.
-	installInfo := models.NewSiteInstallInfo()
-	installInfo.InstallRoot = "/Users/tuomas/Sites/www/drupal-7.31"
+	installInfo := models.NewSiteInstallConfig()
+	installInfo.DrupalRoot = "/Users/tuomasvapaavuori/Sites/drupal-7.31"
 	installInfo.InstallType = "standard"
-	installInfo.SiteName = "local.huuhaa.fi"
-	installInfo.SubDirectory = "local.huuhaa.fi"
+	installInfo.SiteName = "local.puupaa.fi"
+	installInfo.SubDirectory = "local.puupaa.fi"
 	// Create new site.
 	a.Controllers.Site.Create(installInfo)
 
