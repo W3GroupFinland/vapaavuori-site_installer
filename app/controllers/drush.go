@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"bytes"
 	"errors"
 	a "github.com/tuomasvapaavuori/site_installer/app/app_base"
 	"github.com/tuomasvapaavuori/site_installer/app/models"
@@ -76,18 +77,18 @@ func (d *Drush) Which() (string, error) {
 }
 
 func (d *Drush) Run(args ...string) (string, error) {
-	var argStr string
-	for _, arg := range args {
-		argStr += arg
-	}
-	out, err := exec.Command("drush", args...).Output()
+	cmd := exec.Command("drush", args...)
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	// Run command.
+	err := cmd.Run()
+	// Check for errors.
 	if err != nil {
 		log.Println(err)
-		return "", err
+		return out.String(), err
 	}
 
-	outStr := string(out)
-	log.Println(outStr)
+	log.Println(out.String())
 
-	return outStr, nil
+	return out.String(), nil
 }
