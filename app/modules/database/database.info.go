@@ -59,11 +59,15 @@ func (di *DatabaseInfo) Randomize() *DatabaseInfo {
 }
 
 func (di *DatabaseInfo) SetUser(user *models.RandomValue, pass *models.RandomValue, hosts []string) *DatabaseInfo {
+	// Set given user info to Database info.
+	di.User = user
+	di.Password = pass
+
 	if di.User.Random {
 		di.User.Randomize(UsernameLength)
 	}
 	if di.Password.Random {
-		di.User.Randomize(PasswordLength)
+		di.Password.Randomize(PasswordLength)
 	}
 
 	di.Hosts = hosts
@@ -85,6 +89,9 @@ func (di *DatabaseInfo) SetHosts(hosts []string) *DatabaseInfo {
 }
 
 func (di *DatabaseInfo) SetDBName(dbName *models.RandomValue) *DatabaseInfo {
+	// Set given Database name to Database info.
+	di.DbName = dbName
+
 	if di.DbName.Random {
 		di.DbName.Randomize(DatabaseNameLenth)
 	}

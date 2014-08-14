@@ -7,6 +7,7 @@ import (
 	"github.com/tuomasvapaavuori/site_installer/app/models"
 	"github.com/tuomasvapaavuori/site_installer/app/modules/database"
 	"log"
+	"os"
 	"strings"
 )
 
@@ -15,7 +16,9 @@ type Site struct {
 	Base  *a.AppBase
 }
 
-func (s *Site) Create(info *models.SiteInstallConfig) (*database.DatabaseInfo, error) {
+func (s *Site) Create(templ *models.InstallTemplate) (*database.DatabaseInfo, error) {
+	info := &templ.InstallInfo
+
 	_, err := s.InstallRootStatus(info)
 	if err != nil {
 		log.Println(err)
@@ -23,9 +26,8 @@ func (s *Site) Create(info *models.SiteInstallConfig) (*database.DatabaseInfo, e
 	}
 
 	newDB := database.NewDatabase(&s.Base.DataStore)
-	db, err := newDB.Randomize().
-		SetHosts([]string{"localhost", "127.0.0.1"}).
-		SetUserPrivileges([]string{"ALL"}, true).
+	db, err := newDB.SetUser(&templ.MysqlUser, &templ.MysqlPassword, templ.MysqlUserHosts.Hosts).
+		SetUserPrivileges(templ.MysqlUserPrivileges.Privileges, templ.MysqlGrantOption.Value).SetDBName(&templ.DatabaseName).
 		CreateDatabase()
 
 	if err != nil {
@@ -118,4 +120,21 @@ func (s *Site) InstallRootStatus(info *models.SiteInstallConfig) (*models.SiteRo
 	}
 
 	return &rootInfo, nil
+}
+
+func (s *Site) AddToHosts(templ *models.InstallTemplate) error {
+	fi, err := os.OpenFile("/etc/hosts", os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	str := fmt.Sprintf("%v %v\n", "127.0.0.1", templ.InstallInfo.SiteName)
+	_, err = fi.WriteString(str)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	return nil
 }

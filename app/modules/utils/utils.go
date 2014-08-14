@@ -20,10 +20,10 @@ func RandomString(length int) string {
 	return string(bytes)
 }
 
-func ReadConfigFile(file string, c interface{}) {
+func ReadConfigFile(file string, c interface{}) error {
 	folderPath, err := osext.ExecutableFolder()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	path := filepath.Join(folderPath, file)
@@ -31,12 +31,12 @@ func ReadConfigFile(file string, c interface{}) {
 	if err != nil {
 		dir, err := os.Getwd()
 		if err != nil {
-			log.Fatalln(err)
+			return err
 		}
 
 		absPath, err = GetAbsDirectory(dir)
 		if err != nil {
-			log.Fatalln(err)
+			return err
 		}
 
 		path = filepath.Join(absPath, file)
@@ -44,8 +44,10 @@ func ReadConfigFile(file string, c interface{}) {
 
 	err = gcfg.ReadFileInto(c, path)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
+
+	return nil
 }
 
 func GetAbsDirectory(path string) (string, error) {

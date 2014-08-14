@@ -1,0 +1,38 @@
+# Set mysql user to new database. Random means randomize value.
+[mysql-user]
+random = true
+
+# Set mysql user password to new database. Random means randomize value.
+[mysql-password]
+random = true
+
+# Set mysql user allowed hosts to database.
+[mysql-user-hosts]
+hosts = 127.0.0.1
+hosts = localhost
+
+# Set mysql user privileges. Multiple values allowed.
+[mysql-user-privileges]
+privileges = ALL
+
+# Set mysql user grant option.
+[mysql-grant-option]
+value = true
+
+# Set mysql new database name. Random means randomize value.
+[database-name]
+random = true
+
+# General info of drupal project root and install type.
+[install-info]
+drupalroot = /Users/tuomasvapaavuori/Sites/test_auto/drupal-7.31
+installtype = standard
+sitename = local.robbensivu.fi
+subdirectory = local.robbensivu.fi
+
+# Settings for http server config.
+[http-server]
+type = apache
+template = /Users/tuomasvapaavuori/go/src/github.com/tuomasvapaavuori/site_installer/templates/server/apache/default.conf
+port = 80
+config-root = /Users/tuomasvapaavuori/Sites/test_auto/config/apache
