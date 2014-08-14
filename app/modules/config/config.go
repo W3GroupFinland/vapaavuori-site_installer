@@ -2,6 +2,7 @@ package config
 
 import (
 	"github.com/tuomasvapaavuori/site_installer/app/modules/utils"
+	"log"
 )
 
 type Mysql struct {
@@ -34,5 +35,8 @@ func NewConfig() *Config {
 
 // Get configuration settings from file.
 func (c *Config) Read(file string) {
-	utils.ReadConfigFile(file, c)
+	err := utils.ReadConfigFile(file, c)
+	if err != nil {
+		log.Fatalln(err)
+	}
 }

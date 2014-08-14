@@ -3,7 +3,6 @@ package app
 import (
 	a "github.com/tuomasvapaavuori/site_installer/app/app_base"
 	"github.com/tuomasvapaavuori/site_installer/app/controllers"
-	"github.com/tuomasvapaavuori/site_installer/app/models"
 	"log"
 )
 
@@ -11,8 +10,10 @@ type Application struct {
 	Base        *a.AppBase
 	Arguments   map[string]string
 	Controllers struct {
-		Drush *controllers.Drush
-		Site  *controllers.Site
+		Drush        *controllers.Drush
+		Site         *controllers.Site
+		SiteTemplate *controllers.SiteTemplate
+		System       *controllers.System
 	}
 }
 
@@ -36,29 +37,51 @@ func (a *Application) RegisterControllers() {
 	a.Controllers.Drush = &controllers.Drush{Base: a.Base}
 	a.Controllers.Drush.Init()
 	a.Controllers.Site = &controllers.Site{Drush: a.Controllers.Drush, Base: a.Base}
+	a.Controllers.SiteTemplate = &controllers.SiteTemplate{Base: a.Base}
+	a.Controllers.System = &controllers.System{Base: a.Base}
 }
 
 func (a *Application) Run() {
+	defer a.Base.DataStore.DB.Close()
 	// Register controllers.
 	a.RegisterControllers()
 
 	a.Controllers.Drush.Which()
 	a.ParseCommandLineArgs()
 
-	// Define site install info.
-	installInfo := models.NewSiteInstallConfig()
-	installInfo.DrupalRoot = "/Users/tuomasvapaavuori/Sites/drupal-7.31"
-	installInfo.InstallType = "standard"
-	installInfo.SiteName = "local.puupaa.fi"
-	installInfo.SubDirectory = "local.puupaa.fi"
-	// Create new site.
-	a.Controllers.Site.Create(installInfo)
-
-	val, err := a.GetCommandArg("--template")
+	templFile, err := a.GetCommandArg("--template")
 	if err != nil {
 		log.Println(err)
+		return
 	}
-	log.Println(val)
 
-	defer a.Base.DataStore.DB.Close()
+	tmpl, err := a.Controllers.SiteTemplate.ReadTemplate(templFile)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	_, err = a.Controllers.Site.Create(tmpl)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	err = a.Controllers.SiteTemplate.WriteApacheConfig(tmpl)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	err = a.Controllers.Site.AddToHosts(tmpl)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	err = a.Controllers.System.ApacheRestart()
+	if err != nil {
+		log.Println(err)
+		return
+	}
 }
