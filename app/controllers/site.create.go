@@ -25,6 +25,18 @@ func (s *Site) Create(templ *models.InstallTemplate) (*database.DatabaseInfo, er
 		return &database.DatabaseInfo{}, err
 	}
 
+	var db *database.DatabaseInfo
+	switch info.InstallType {
+	case "standard":
+		db, err = s.StandardInstallation(templ)
+	case "archive-dump":
+		//db, err := s.ArchiveDumpInstallation(templ)
+	}
+
+	return db, nil
+}
+
+func (s *Site) CreateDatabase(templ *models.InstallTemplate) (*database.DatabaseInfo, error) {
 	newDB := database.NewDatabase(&s.Base.DataStore)
 	db, err := newDB.SetUser(&templ.MysqlUser, &templ.MysqlPassword, templ.MysqlUserHosts.Hosts).
 		SetUserPrivileges(templ.MysqlUserPrivileges.Privileges, templ.MysqlGrantOption.Value).SetDBName(&templ.DatabaseName).
@@ -32,19 +44,51 @@ func (s *Site) Create(templ *models.InstallTemplate) (*database.DatabaseInfo, er
 
 	if err != nil {
 		log.Println(err, db)
+		return db, err
 	}
 
-	mysqlStr := fmt.Sprintf("--db-url=mysql://%v:%v@%v:%v/%v",
-		db.User.Value,
-		db.Password.Value,
-		s.Base.Config.Mysql.Host,
-		s.Base.Config.Mysql.Port,
-		db.DbName.Value)
+	return db, err
+}
 
-	siteNameStr := fmt.Sprintf("--site-name=%v", info.SiteName)
-	subDirStr := fmt.Sprintf("--sites-subdir=%v", info.SubDirectory)
+func (s *Site) StandardInstallation(templ *models.InstallTemplate) (*database.DatabaseInfo, error) {
+	db, err := s.CreateDatabase(templ)
+	if err != nil {
+		return db, err
+	}
+
+	info := templ.InstallInfo
+
+	var (
+		mysqlStr    = s.Drush.FormatDatabaseStr(db)
+		siteNameStr = s.Drush.FormatSiteNameStr(&info)
+		subDirStr   = s.Drush.FormatSiteSubDirStr(&info)
+	)
 
 	_, err = s.Drush.Run("-y", "-r", info.DrupalRoot, "site-install", info.InstallType, mysqlStr, siteNameStr, subDirStr)
+	if err != nil {
+		log.Println(err)
+		return db, err
+	}
+
+	return db, nil
+}
+
+func (s *Site) ArchiveDumpInstallation(templ *models.InstallTemplate) (*database.DatabaseInfo, error) {
+	db, err := s.CreateDatabase(templ)
+	if err != nil {
+		return db, err
+	}
+
+	info := templ.InstallInfo
+
+	var (
+		mysqlStr    = s.Drush.FormatDatabaseStr(db)
+		siteNameStr = s.Drush.FormatSiteNameStr(&info)
+		subDirStr   = s.Drush.FormatSiteSubDirStr(&info)
+	)
+
+	// drush archive-restore [new-backup-archive] [site] --destination=./[new-folder-name] --db-url=mysql://[msql-user]:[mysql-password]@[target-server]/[db-name]
+	_, err = s.Drush.Run("-y", "-r", info.DrupalRoot, "archive-restore", info.InstallType, mysqlStr, siteNameStr, subDirStr)
 	if err != nil {
 		log.Println(err)
 		return db, err

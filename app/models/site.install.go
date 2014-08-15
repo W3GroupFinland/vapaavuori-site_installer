@@ -3,6 +3,7 @@ package models
 type SiteInstallConfig struct {
 	DrupalRoot   string
 	InstallType  string
+	TemplateDump string
 	SiteName     string
 	SubDirectory string
 }

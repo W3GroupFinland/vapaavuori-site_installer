@@ -3,8 +3,10 @@ package controllers
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	a "github.com/tuomasvapaavuori/site_installer/app/app_base"
 	"github.com/tuomasvapaavuori/site_installer/app/models"
+	"github.com/tuomasvapaavuori/site_installer/app/modules/database"
 	"github.com/tuomasvapaavuori/site_installer/app/modules/utils"
 	"log"
 	"os/exec"
@@ -13,6 +15,11 @@ import (
 const (
 	NoCommandFound = "No drush command found."
 	DrushCommand   = "drush"
+
+	// Drush arguments
+	DrushDatabaseUrlArg = "--db-url"
+	DrushSiteNameArg    = "--site-name"
+	DrushSiteSubDirArg  = "--sites-subdir"
 )
 
 type Drush struct {
@@ -91,4 +98,38 @@ func (d *Drush) Run(args ...string) (string, error) {
 	log.Println(out.String())
 
 	return out.String(), nil
+}
+
+func (d *Drush) ArgumentStringFormat(name string) string {
+	var str string
+	switch name {
+	case DrushDatabaseUrlArg:
+		str = "--db-url=mysql://%v:%v@%v:%v/%v"
+		break
+	case DrushSiteNameArg:
+		str = "--site-name=%v"
+		break
+	case DrushSiteSubDirArg:
+		str = "--sites-subdir=%v"
+		break
+	}
+
+	return str
+}
+
+func (d *Drush) FormatDatabaseStr(db *database.DatabaseInfo) string {
+	return fmt.Sprintf(d.ArgumentStringFormat(DrushDatabaseUrlArg),
+		db.User.Value,
+		db.Password.Value,
+		d.Base.Config.Mysql.Host,
+		d.Base.Config.Mysql.Port,
+		db.DbName.Value)
+}
+
+func (d *Drush) FormatSiteNameStr(ic *models.SiteInstallConfig) string {
+	return fmt.Sprintf(d.ArgumentStringFormat(DrushSiteNameArg), ic.SiteName)
+}
+
+func (d *Drush) FormatSiteSubDirStr(ic *models.SiteInstallConfig) string {
+	return fmt.Sprintf(d.ArgumentStringFormat(DrushSiteSubDirArg), ic.SubDirectory)
 }

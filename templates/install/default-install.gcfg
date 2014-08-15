@@ -27,8 +27,8 @@ random = true
 [install-info]
 drupalroot = /Users/tuomasvapaavuori/Sites/test_auto/drupal-7.31
 installtype = standard
-sitename = local.robbensivu.fi
-subdirectory = local.robbensivu.fi
+sitename = local.tamasivu.fi
+subdirectory = local.tamasivu.fi
 
 # Settings for http server config.
 [http-server]
