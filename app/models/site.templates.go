@@ -9,7 +9,7 @@ type InstallTemplate struct {
 	DatabaseName        RandomValue         `gcfg:"database-name"`
 	InstallInfo         SiteInstallConfig   `gcfg:"install-info"`
 	HttpServer          HttpServerTemplate  `gcfg:"http-server"`
-	SSLServer           HttpServerTemplate  `gcfg:"ssl-server"`
+	SSLServer           SSLServerTemplate   `gcfg:"ssl-server"`
 }
 
 type MysqlGrantOption struct {
@@ -25,10 +25,18 @@ type MysqlUserHosts struct {
 }
 
 type HttpServerTemplate struct {
-	Type       string
-	Template   string
-	Port       string
-	ConfigRoot string `gcfg:"config-root"`
+	Type          string
+	Template      string
+	Port          string
+	ServerName    string   `gcfg:"server-name"`
+	ServerAliases []string `gcfg:"server-alias"`
+	ConfigRoot    string   `gcfg:"config-root"`
+}
+
+type SSLServerTemplate struct {
+	HttpServerTemplate
+	Certificate string
+	Key         string
 }
 
 func (it *InstallTemplate) GetSiteInstallConfig() *SiteInstallConfig {

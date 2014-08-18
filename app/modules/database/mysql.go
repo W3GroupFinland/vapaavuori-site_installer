@@ -291,49 +291,55 @@ func (di *DataStore) SqlImport(r *bufio.Reader) error {
 		}
 
 		if str != "commit;\n" {
-			// Append to commit
+			// If matched line is mysql comment.
 			matched, err := regexp.Match(`^[-]{2}`, []byte(str))
 			if err != nil {
 				return err
 			}
+			// If matched continue.
 			if matched {
 				continue
 			}
 
 			if strings.TrimSpace(str) == "" {
-				log.Println("Empty line.")
 				continue
 			}
 
+			// If matched to line ending with x characters to ;\n
 			matched, err = regexp.Match(`^.{0,}(;\n)`, []byte(str))
 			if err != nil {
 				return err
 			}
 			if !matched {
-				//log.Println(str)
 				query += str
 				continue
 			}
-
+			// If matched last regex append string to query.
 			query += str
 
-			//log.Printf("QUERY: %v", query)
+			// Trim white space from query.
 			query = strings.TrimSpace(query)
+			// Trim query ; suffix.
 			query = strings.TrimSuffix(query, ";")
 
+			// Execute query.
 			res, err := tx.Exec(query)
 			if err != nil {
 				return err
 			}
 
-			raf, err := res.RowsAffected()
+			_, err = res.RowsAffected()
 			if err != nil {
 				return err
 			}
-			log.Printf("%d, rows affected.", raf)
-			// Empty query.
+			// Empty query..
 			query = ""
 		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		log.Printf("SQL commit error: %v\n", err.Error())
 	}
 
 	return nil

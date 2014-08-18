@@ -3,7 +3,7 @@ package app
 import (
 	a "github.com/tuomasvapaavuori/site_installer/app/app_base"
 	"github.com/tuomasvapaavuori/site_installer/app/controllers"
-	"github.com/tuomasvapaavuori/site_installer/app/modules/utils"
+	//"github.com/tuomasvapaavuori/site_installer/app/modules/utils"
 	"log"
 )
 
@@ -55,13 +55,6 @@ func (a *Application) Run() {
 	a.Controllers.Drush.Which()
 	a.ParseCommandLineArgs()
 
-	ct := utils.CopyTarget{}
-	err := ct.CopyDirectory("/Users/tuomas/go/src/github.com/tuomasvapaavuori/site_installer/templates/site-templates/template1/site-files", "/Users/tuomas/tmp/test")
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
 	templFile, err := a.GetCommandArg("--template")
 	if err != nil {
 		log.Println(err)
@@ -86,11 +79,14 @@ func (a *Application) Run() {
 		return
 	}
 
-	err = a.Controllers.Site.AddToHosts(tmpl)
+	domains := a.Controllers.Site.GetSiteTemplateDomains(tmpl)
+	err = a.Controllers.Site.AddToHosts(tmpl, domains)
 	if err != nil {
 		log.Println(err)
 		return
 	}
+
+	a.Controllers.Site.CreateDomainSymlinks(tmpl, domains)
 
 	err = a.Controllers.System.ApacheRestart()
 	if err != nil {
