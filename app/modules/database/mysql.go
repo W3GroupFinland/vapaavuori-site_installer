@@ -1,19 +1,27 @@
 package database
 
 import (
+	"bufio"
 	"database/sql"
 	"errors"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/tuomasvapaavuori/site_installer/app/models"
+	"io"
 	"log"
+	"regexp"
+	"strings"
 )
 
 type DataStore struct {
 	DB *sql.DB
 }
 
-func (d *DataStore) OpenConn(user string, passWord string, protocol string, host string, port string, dbName string) {
+func NewDataStore() *DataStore {
+	return &DataStore{}
+}
+
+func (d *DataStore) OpenConn(user string, passWord string, protocol string, host string, port string, dbName string) (*DataStore, error) {
 	dbString := fmt.Sprintf("%v:%v@%v(%v:%v)/%v",
 		user,
 		passWord,
@@ -29,17 +37,20 @@ func (d *DataStore) OpenConn(user string, passWord string, protocol string, host
 	// Open db connection
 	db, err = sql.Open("mysql", dbString)
 	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
+		return d, err
 	}
 
 	err = db.Ping()
 	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
+		return d, err
 	}
 
 	d.DB = db
 
 	log.Println("Successfully opened database connection.")
+	return d, nil
 }
 
 func (d *DataStore) CreateDatabase(name string) error {
@@ -250,4 +261,80 @@ func (d *DataStore) CheckDatabaseExists(name string) bool {
 	}
 
 	return false
+}
+
+func (di *DataStore) SqlImport(r *bufio.Reader) error {
+	var (
+		bytesRead int64
+		query     string
+	)
+
+	// Start database transaction.
+	tx, err := di.DB.Begin()
+	if err != nil {
+		return err
+	}
+
+	for {
+		// read a chunk
+		str, err := r.ReadString(10)
+		bytesRead = bytesRead + int64(len(str))
+
+		// If error wasn't nil return error.
+		if err != nil && err != io.EOF {
+			return err
+		}
+
+		// If no bytes where read return from loop.
+		if err == io.EOF {
+			break
+		}
+
+		if str != "commit;\n" {
+			// Append to commit
+			matched, err := regexp.Match(`^[-]{2}`, []byte(str))
+			if err != nil {
+				return err
+			}
+			if matched {
+				continue
+			}
+
+			if strings.TrimSpace(str) == "" {
+				log.Println("Empty line.")
+				continue
+			}
+
+			matched, err = regexp.Match(`^.{0,}(;\n)`, []byte(str))
+			if err != nil {
+				return err
+			}
+			if !matched {
+				//log.Println(str)
+				query += str
+				continue
+			}
+
+			query += str
+
+			//log.Printf("QUERY: %v", query)
+			query = strings.TrimSpace(query)
+			query = strings.TrimSuffix(query, ";")
+
+			res, err := tx.Exec(query)
+			if err != nil {
+				return err
+			}
+
+			raf, err := res.RowsAffected()
+			if err != nil {
+				return err
+			}
+			log.Printf("%d, rows affected.", raf)
+			// Empty query.
+			query = ""
+		}
+	}
+
+	return nil
 }

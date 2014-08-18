@@ -3,6 +3,7 @@ package app
 import (
 	a "github.com/tuomasvapaavuori/site_installer/app/app_base"
 	"github.com/tuomasvapaavuori/site_installer/app/controllers"
+	"github.com/tuomasvapaavuori/site_installer/app/modules/utils"
 	"log"
 )
 
@@ -23,13 +24,18 @@ func Init() *Application {
 	// Read application configuration from file.
 	a.Base.Config.Read("config/config.gcfg")
 	// Open database connection.
-	a.Base.DataStore.OpenConn(
+	_, err := a.Base.DataStore.OpenConn(
 		a.Base.Config.Mysql.User,
 		a.Base.Config.Mysql.Password,
 		a.Base.Config.Mysql.Protocol,
 		a.Base.Config.Mysql.Host,
 		a.Base.Config.Mysql.Port,
 		a.Base.Config.Mysql.DbName)
+
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	return &a
 }
 
@@ -48,6 +54,13 @@ func (a *Application) Run() {
 
 	a.Controllers.Drush.Which()
 	a.ParseCommandLineArgs()
+
+	ct := utils.CopyTarget{}
+	err := ct.CopyDirectory("/Users/tuomas/go/src/github.com/tuomasvapaavuori/site_installer/templates/site-templates/template1/site-files", "/Users/tuomas/tmp/test")
+	if err != nil {
+		log.Println(err)
+		return
+	}
 
 	templFile, err := a.GetCommandArg("--template")
 	if err != nil {

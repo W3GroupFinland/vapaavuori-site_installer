@@ -100,6 +100,15 @@ func (d *Drush) Run(args ...string) (string, error) {
 	return out.String(), nil
 }
 
+func (d *Drush) VariableSet(it *models.InstallTemplate, key string, value string) error {
+	_, err := d.Run("-r", it.InstallInfo.DrupalRoot, it.InstallInfo.SubDirectory, "vset", key, value)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (d *Drush) ArgumentStringFormat(name string) string {
 	var str string
 	switch name {

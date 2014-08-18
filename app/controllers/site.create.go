@@ -1,13 +1,18 @@
 package controllers
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	a "github.com/tuomasvapaavuori/site_installer/app/app_base"
 	"github.com/tuomasvapaavuori/site_installer/app/models"
 	"github.com/tuomasvapaavuori/site_installer/app/modules/database"
+	"github.com/tuomasvapaavuori/site_installer/app/modules/utils"
+	//"io"
 	"log"
 	"os"
+	//"os/exec"
+	"path/filepath"
 	"strings"
 )
 
@@ -18,8 +23,9 @@ type Site struct {
 
 func (s *Site) Create(templ *models.InstallTemplate) (*database.DatabaseInfo, error) {
 	info := &templ.InstallInfo
+	var err error
 
-	_, err := s.InstallRootStatus(info)
+	_, err = s.InstallRootStatus(info)
 	if err != nil {
 		log.Println(err)
 		return &database.DatabaseInfo{}, err
@@ -28,9 +34,13 @@ func (s *Site) Create(templ *models.InstallTemplate) (*database.DatabaseInfo, er
 	var db *database.DatabaseInfo
 	switch info.InstallType {
 	case "standard":
-		db, err = s.StandardInstallation(templ)
-	case "archive-dump":
-		//db, err := s.ArchiveDumpInstallation(templ)
+		db, err = s.StandardInstallation(templ, info.InstallType)
+	case "template":
+		db, err = s.SiteTemplateInstallation(templ)
+	}
+
+	if err != nil {
+		return db, err
 	}
 
 	return db, nil
@@ -50,7 +60,7 @@ func (s *Site) CreateDatabase(templ *models.InstallTemplate) (*database.Database
 	return db, err
 }
 
-func (s *Site) StandardInstallation(templ *models.InstallTemplate) (*database.DatabaseInfo, error) {
+func (s *Site) StandardInstallation(templ *models.InstallTemplate, installType string) (*database.DatabaseInfo, error) {
 	db, err := s.CreateDatabase(templ)
 	if err != nil {
 		return db, err
@@ -64,35 +74,158 @@ func (s *Site) StandardInstallation(templ *models.InstallTemplate) (*database.Da
 		subDirStr   = s.Drush.FormatSiteSubDirStr(&info)
 	)
 
-	_, err = s.Drush.Run("-y", "-r", info.DrupalRoot, "site-install", info.InstallType, mysqlStr, siteNameStr, subDirStr)
+	_, err = s.Drush.Run("-y", "-r", info.DrupalRoot, "site-install", installType, mysqlStr, siteNameStr, subDirStr)
 	if err != nil {
-		log.Println(err)
 		return db, err
 	}
 
 	return db, nil
 }
 
-func (s *Site) ArchiveDumpInstallation(templ *models.InstallTemplate) (*database.DatabaseInfo, error) {
-	db, err := s.CreateDatabase(templ)
+func (s *Site) SiteTemplateInstallation(templ *models.InstallTemplate) (*database.DatabaseInfo, error) {
+	info := templ.InstallInfo
+
+	// TODO: Install new site.
+	db, err := s.StandardInstallation(templ, "standard")
 	if err != nil {
 		return db, err
 	}
 
-	info := templ.InstallInfo
-
 	var (
-		mysqlStr    = s.Drush.FormatDatabaseStr(db)
-		siteNameStr = s.Drush.FormatSiteNameStr(&info)
-		subDirStr   = s.Drush.FormatSiteSubDirStr(&info)
+		siteSubDirectory = filepath.Join(info.DrupalRoot, "sites", info.SubDirectory)
 	)
 
-	// drush archive-restore [new-backup-archive] [site] --destination=./[new-folder-name] --db-url=mysql://[msql-user]:[mysql-password]@[target-server]/[db-name]
-	_, err = s.Drush.Run("-y", "-r", info.DrupalRoot, "archive-restore", info.InstallType, mysqlStr, siteNameStr, subDirStr)
+	// TODO: Remove files folder under new created site.
+	err = os.RemoveAll(filepath.Join(info.DrupalRoot, "sites", info.SubDirectory, "files"))
 	if err != nil {
 		log.Println(err)
 		return db, err
 	}
+	// TODO: Copy files from given template to new site.
+	ct := utils.CopyTarget{}
+	err = ct.CopyDirectory(filepath.Join(info.TemplatePath, "site-files"), siteSubDirectory)
+	if err != nil {
+		log.Println(err)
+		return db, err
+	}
+
+	// TODO: Empty database from new site.
+	_, err = s.Drush.Run("-y", "-r", info.DrupalRoot, info.SubDirectory, "sql-drop")
+	if err != nil {
+		return db, err
+	}
+
+	ds, err := database.NewDataStore().OpenConn(
+		templ.MysqlUser.Value,
+		templ.MysqlPassword.Value,
+		s.Base.Config.Mysql.Protocol,
+		s.Base.Config.Mysql.Host,
+		s.Base.Config.Mysql.Port,
+		templ.DatabaseName.Value,
+	)
+
+	defer ds.DB.Close()
+
+	if err != nil {
+		log.Println(err)
+		return db, err
+	}
+
+	// Open input file.
+	fi, err := os.Open(filepath.Join(info.TemplatePath, "db.sql"))
+	if err != nil {
+		log.Println(err)
+		return db, err
+	}
+
+	r := bufio.NewReader(fi)
+
+	err = ds.SqlImport(r)
+	if err != nil {
+		log.Println(err)
+		return db, err
+	}
+
+	/*// TODO: Import template database to site database.
+	cmd := exec.Command("drush", "-y", "-r", info.DrupalRoot, info.SubDirectory, "sqlc")
+	writeCloser, err := cmd.StdinPipe()
+	if err != nil {
+		log.Println(err)
+		return db, err
+	}
+
+	// Close fi on exit and check for its returned error.
+	defer func() (*database.DatabaseInfo, error) {
+		if err := fi.Close(); err != nil {
+			log.Println(err)
+			return db, err
+		}
+
+		if err := writeCloser.Close(); err != nil {
+			log.Println(err)
+			return db, err
+		}
+
+		return db, nil
+	}()
+
+	err = cmd.Start()
+	if err != nil {
+		log.Println(err)
+		return db, err
+	}
+
+	fiInfo, err := fi.Stat()
+	if err != nil {
+		log.Println(err)
+		return db, err
+	}
+	fileLength := fiInfo.Size()
+
+	// Make a buffer to keep chunks that are read
+	buf := make([]byte, 1024)
+	var bytesRead int64
+	var i int
+	for {
+		// read a chunk
+		n, err := r.Read(buf)
+		bytesRead = bytesRead + int64(len(buf))
+		if i == 1000 {
+			log.Printf("%d bytes read of %d", bytesRead, fileLength)
+			i = 0
+		}
+		if err != nil && err != io.EOF {
+			panic(err)
+		}
+		if n == 0 {
+			break
+		}
+
+		// Write a chunk
+		if _, err := writeCloser.Write(buf[:n]); err != nil {
+			panic(err)
+		}
+
+		i++
+	}*/
+
+	err = utils.ChownRecursive(filepath.Join(info.DrupalRoot, "sites", info.SubDirectory, "private"), info.HttpUser, info.HttpGroup)
+	if err != nil {
+		log.Println(err)
+		return db, err
+	}
+
+	err = utils.ChownRecursive(filepath.Join(info.DrupalRoot, "sites", info.SubDirectory, "files"), info.HttpUser, info.HttpGroup)
+	if err != nil {
+		log.Println(err)
+		return db, err
+	}
+
+	s.Drush.VariableSet(templ, "file_private_path", filepath.Join("sites", info.SubDirectory, "private", "files"))
+	s.Drush.VariableSet(templ, "file_public_path", filepath.Join("sites", info.SubDirectory, "files"))
+	s.Drush.VariableSet(templ, "file_temporary_path", filepath.Join("sites", info.SubDirectory, "private", "temp"))
+
+	log.Println("Database succesfully imported.")
 
 	return db, nil
 }
