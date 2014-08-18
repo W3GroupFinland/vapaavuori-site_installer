@@ -85,7 +85,7 @@ func (s *Site) StandardInstallation(templ *models.InstallTemplate, installType s
 func (s *Site) SiteTemplateInstallation(templ *models.InstallTemplate) (*database.DatabaseInfo, error) {
 	info := templ.InstallInfo
 
-	// TODO: Install new site.
+	// Install new site.
 	db, err := s.StandardInstallation(templ, "standard")
 	if err != nil {
 		return db, err
@@ -95,13 +95,13 @@ func (s *Site) SiteTemplateInstallation(templ *models.InstallTemplate) (*databas
 		siteSubDirectory = filepath.Join(info.DrupalRoot, "sites", info.SubDirectory)
 	)
 
-	// TODO: Remove files folder under new created site.
+	// Remove files folder under new created site.
 	err = os.RemoveAll(filepath.Join(info.DrupalRoot, "sites", info.SubDirectory, "files"))
 	if err != nil {
 		log.Println(err)
 		return db, err
 	}
-	// TODO: Copy files from given template to new site.
+	// Copy files from given template to new site.
 	ct := utils.CopyTarget{}
 	err = ct.CopyDirectory(filepath.Join(info.TemplatePath, "site-files"), siteSubDirectory)
 	if err != nil {
@@ -109,7 +109,7 @@ func (s *Site) SiteTemplateInstallation(templ *models.InstallTemplate) (*databas
 		return db, err
 	}
 
-	// TODO: Empty database from new site.
+	// Empty database from new site.
 	_, err = s.Drush.Run("-y", "-r", info.DrupalRoot, info.SubDirectory, "sql-drop")
 	if err != nil {
 		return db, err
@@ -146,69 +146,6 @@ func (s *Site) SiteTemplateInstallation(templ *models.InstallTemplate) (*databas
 		return db, err
 	}
 
-	/*// TODO: Import template database to site database.
-	cmd := exec.Command("drush", "-y", "-r", info.DrupalRoot, info.SubDirectory, "sqlc")
-	writeCloser, err := cmd.StdinPipe()
-	if err != nil {
-		log.Println(err)
-		return db, err
-	}
-
-	// Close fi on exit and check for its returned error.
-	defer func() (*database.DatabaseInfo, error) {
-		if err := fi.Close(); err != nil {
-			log.Println(err)
-			return db, err
-		}
-
-		if err := writeCloser.Close(); err != nil {
-			log.Println(err)
-			return db, err
-		}
-
-		return db, nil
-	}()
-
-	err = cmd.Start()
-	if err != nil {
-		log.Println(err)
-		return db, err
-	}
-
-	fiInfo, err := fi.Stat()
-	if err != nil {
-		log.Println(err)
-		return db, err
-	}
-	fileLength := fiInfo.Size()
-
-	// Make a buffer to keep chunks that are read
-	buf := make([]byte, 1024)
-	var bytesRead int64
-	var i int
-	for {
-		// read a chunk
-		n, err := r.Read(buf)
-		bytesRead = bytesRead + int64(len(buf))
-		if i == 1000 {
-			log.Printf("%d bytes read of %d", bytesRead, fileLength)
-			i = 0
-		}
-		if err != nil && err != io.EOF {
-			panic(err)
-		}
-		if n == 0 {
-			break
-		}
-
-		// Write a chunk
-		if _, err := writeCloser.Write(buf[:n]); err != nil {
-			panic(err)
-		}
-
-		i++
-	}*/
-
 	err = utils.ChownRecursive(filepath.Join(info.DrupalRoot, "sites", info.SubDirectory, "private"), info.HttpUser, info.HttpGroup)
 	if err != nil {
 		log.Println(err)
@@ -225,9 +162,50 @@ func (s *Site) SiteTemplateInstallation(templ *models.InstallTemplate) (*databas
 	s.Drush.VariableSet(templ, "file_public_path", filepath.Join("sites", info.SubDirectory, "files"))
 	s.Drush.VariableSet(templ, "file_temporary_path", filepath.Join("sites", info.SubDirectory, "private", "temp"))
 
+	if templ.SSLServer.ServerName != "" {
+		s.Drush.VariableSet(templ, "securepages_basepath_ssl", "//"+templ.SSLServer.ServerName)
+	}
+
 	log.Println("Database succesfully imported.")
 
 	return db, nil
+}
+
+func (s *Site) GetSiteTemplateDomains(templ *models.InstallTemplate) *models.SiteDomains {
+	domains := models.NewSiteDomains()
+
+	// Get domains
+	domains.SetDomain(templ.InstallInfo.ServerName)
+	domains.SetDomain(templ.HttpServer.ServerName)
+	domains.SetDomain(templ.SSLServer.ServerName)
+
+	for _, domain := range templ.HttpServer.ServerAliases {
+		domains.SetDomain(domain)
+	}
+	for _, domain := range templ.SSLServer.ServerAliases {
+		domains.SetDomain(domain)
+	}
+
+	domains.SubDirectory = templ.InstallInfo.SubDirectory
+	domains.SiteName = templ.InstallInfo.SiteName
+
+	return domains
+}
+
+func (s *Site) CreateDomainSymlinks(templ *models.InstallTemplate, domains *models.SiteDomains) {
+	for _, domain := range domains.Domains {
+		pathToSubDir := filepath.Join(templ.InstallInfo.DrupalRoot, "sites", templ.InstallInfo.SubDirectory)
+		pathToDomain := filepath.Join(templ.InstallInfo.DrupalRoot, "sites", domain)
+
+		if _, err := os.Stat(pathToDomain); err != nil {
+			if os.IsNotExist(err) {
+				err := os.Symlink(pathToSubDir, pathToDomain)
+				if err != nil {
+					log.Printf("Error creating symlink: %v\n", err.Error())
+				}
+			}
+		}
+	}
 }
 
 func (s *Site) InstallRootStatus(info *models.SiteInstallConfig) (*models.SiteRootInfo, error) {
@@ -299,14 +277,30 @@ func (s *Site) InstallRootStatus(info *models.SiteInstallConfig) (*models.SiteRo
 	return &rootInfo, nil
 }
 
-func (s *Site) AddToHosts(templ *models.InstallTemplate) error {
+func (s *Site) AddToHosts(templ *models.InstallTemplate, domains *models.SiteDomains) error {
 	fi, err := os.OpenFile("/etc/hosts", os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
 		log.Println(err)
 		return err
 	}
 
-	str := fmt.Sprintf("%v %v\n", "127.0.0.1", templ.InstallInfo.SiteName)
+	var (
+		domainStr    string
+		i            = 0
+		totalDomains = len(domains.Domains)
+	)
+
+	for _, domain := range domains.Domains {
+		if i == (totalDomains - 1) {
+			domainStr += domain
+			break
+		}
+
+		domainStr += domain + " "
+		i++
+	}
+
+	str := fmt.Sprintf("%v %v\n", "127.0.0.1", domainStr)
 	_, err = fi.WriteString(str)
 	if err != nil {
 		log.Println(err)

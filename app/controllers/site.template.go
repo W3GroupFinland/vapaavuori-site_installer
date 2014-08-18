@@ -25,10 +25,62 @@ func (c *SiteTemplate) ReadTemplate(file string) (*models.InstallTemplate, error
 }
 
 func (c *SiteTemplate) WriteApacheConfig(tmpl *models.InstallTemplate) error {
-	configName := tmpl.InstallInfo.SiteName
-	t := template.Must(template.New("server.config").ParseFiles(tmpl.HttpServer.Template))
+	outputFileName := tmpl.InstallInfo.SiteName
 
-	fo, err := os.Create(filepath.Join(tmpl.HttpServer.ConfigRoot, configName))
+	if tmpl.HttpServer.Template != "" {
+		// Write regular apache config.
+		log.Println("Write regular apache config.")
+
+		if tmpl.HttpServer.ServerName == "" {
+			tmpl.HttpServer.ServerName = tmpl.InstallInfo.ServerName
+		}
+
+		if len(tmpl.HttpServer.ServerAliases) == 0 {
+			tmpl.HttpServer.ServerAliases = tmpl.InstallInfo.ServerAliases
+		}
+
+		if tmpl.HttpServer.ConfigRoot == "" {
+			tmpl.HttpServer.ConfigRoot = tmpl.InstallInfo.ServerConfigRoot
+		}
+
+		log.Println("http." + outputFileName)
+
+		err := c.WriteServerConfig(tmpl, "http."+outputFileName, tmpl.HttpServer.Template, tmpl.HttpServer.ConfigRoot)
+		if err != nil {
+			return err
+		}
+	}
+	if tmpl.SSLServer.Template != "" {
+		// Write SSL apache config.
+		log.Println("Write SSL config.")
+
+		if tmpl.SSLServer.ServerName == "" {
+			tmpl.SSLServer.ServerName = tmpl.InstallInfo.ServerName
+		}
+
+		if len(tmpl.SSLServer.ServerAliases) == 0 {
+			tmpl.SSLServer.ServerAliases = tmpl.InstallInfo.ServerAliases
+		}
+
+		if tmpl.SSLServer.ConfigRoot == "" {
+			tmpl.SSLServer.ConfigRoot = tmpl.InstallInfo.ServerConfigRoot
+		}
+
+		log.Println("ssl." + outputFileName)
+
+		err := c.WriteServerConfig(tmpl, "ssl."+outputFileName, tmpl.SSLServer.Template, tmpl.SSLServer.ConfigRoot)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (c *SiteTemplate) WriteServerConfig(tmpl *models.InstallTemplate, outputFileName string, templateFile string, configRoot string) error {
+	t := template.Must(template.New("server.config").ParseFiles(templateFile))
+
+	fo, err := os.Create(filepath.Join(configRoot, outputFileName))
 	if err != nil {
 		log.Println(err)
 		return err
