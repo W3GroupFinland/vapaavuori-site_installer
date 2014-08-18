@@ -1,11 +1,13 @@
 package models
 
 type SiteInstallConfig struct {
-	DrupalRoot   string
-	InstallType  string
-	TemplateDump string
-	SiteName     string
-	SubDirectory string
+	DrupalRoot   string `gcfg:"drupal-root"`
+	InstallType  string `gcfg:"install-type"`
+	TemplatePath string `gcfg:"template-path"`
+	SiteName     string `gcfg:"sitename"`
+	SubDirectory string `gcfg:"sub-directory"`
+	HttpUser     string `gcfg:"http-user"`
+	HttpGroup    string `gcfg:"http-group"`
 }
 
 func NewSiteInstallConfig() *SiteInstallConfig {

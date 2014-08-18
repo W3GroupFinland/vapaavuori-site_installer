@@ -25,14 +25,17 @@ random = true
 
 # General info of drupal project root and install type.
 [install-info]
-drupalroot = /Users/tuomasvapaavuori/Sites/test_auto/drupal-7.31
-installtype = standard
-sitename = local.tamasivu.fi
-subdirectory = local.tamasivu.fi
+drupal-root = /Users/tuomas/Sites/www/tivia/tivia-drupal
+install-type = template
+template-path =  /Users/tuomas/go/src/github.com/tuomasvapaavuori/site_installer/templates/site-templates/template1
+sitename = local.sssssivu.fi
+sub-directory = local.sssssivu.fi
+http-user = _www
+http-group = _www
 
 # Settings for http server config.
 [http-server]
 type = apache
-template = /Users/tuomasvapaavuori/go/src/github.com/tuomasvapaavuori/site_installer/templates/server/apache/default.conf
+template = /Users/tuomas/go/src/github.com/tuomasvapaavuori/site_installer/templates/server/apache/default.conf
 port = 80
-config-root = /Users/tuomasvapaavuori/Sites/test_auto/config/apache
+config-root = /Users/tuomas/Sites/www/tivia/conf/apache
