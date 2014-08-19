@@ -8,10 +8,9 @@ import (
 	"github.com/tuomasvapaavuori/site_installer/app/models"
 	"github.com/tuomasvapaavuori/site_installer/app/modules/database"
 	"github.com/tuomasvapaavuori/site_installer/app/modules/utils"
-	//"io"
+	"io"
 	"log"
 	"os"
-	//"os/exec"
 	"path/filepath"
 	"strings"
 )
@@ -46,20 +45,6 @@ func (s *Site) Create(templ *models.InstallTemplate) (*database.DatabaseInfo, er
 	return db, nil
 }
 
-func (s *Site) CreateDatabase(templ *models.InstallTemplate) (*database.DatabaseInfo, error) {
-	newDB := database.NewDatabase(&s.Base.DataStore)
-	db, err := newDB.SetUser(&templ.MysqlUser, &templ.MysqlPassword, templ.MysqlUserHosts.Hosts).
-		SetUserPrivileges(templ.MysqlUserPrivileges.Privileges, templ.MysqlGrantOption.Value).SetDBName(&templ.DatabaseName).
-		CreateDatabase()
-
-	if err != nil {
-		log.Println(err, db)
-		return db, err
-	}
-
-	return db, err
-}
-
 func (s *Site) StandardInstallation(templ *models.InstallTemplate, installType string) (*database.DatabaseInfo, error) {
 	db, err := s.CreateDatabase(templ)
 	if err != nil {
@@ -78,6 +63,11 @@ func (s *Site) StandardInstallation(templ *models.InstallTemplate, installType s
 	if err != nil {
 		return db, err
 	}
+
+	// Rollback: Remove install directory.
+	templ.RollBack.AddFileFunction(
+		utils.RemoveDirectory,
+		filepath.Join(info.DrupalRoot, "sites", info.SubDirectory))
 
 	return db, nil
 }
@@ -158,12 +148,17 @@ func (s *Site) SiteTemplateInstallation(templ *models.InstallTemplate) (*databas
 		return db, err
 	}
 
-	s.Drush.VariableSet(templ, "file_private_path", filepath.Join("sites", info.SubDirectory, "private", "files"))
-	s.Drush.VariableSet(templ, "file_public_path", filepath.Join("sites", info.SubDirectory, "files"))
-	s.Drush.VariableSet(templ, "file_temporary_path", filepath.Join("sites", info.SubDirectory, "private", "temp"))
+	err = s.Drush.VariableSet(templ, "file_private_path", filepath.Join("sites", info.SubDirectory, "private", "files"))
+	err = s.Drush.VariableSet(templ, "file_public_path", filepath.Join("sites", info.SubDirectory, "files"))
+	err = s.Drush.VariableSet(templ, "file_temporary_path", filepath.Join("sites", info.SubDirectory, "private", "temp"))
 
-	if templ.SSLServer.ServerName != "" {
-		s.Drush.VariableSet(templ, "securepages_basepath_ssl", "//"+templ.SSLServer.ServerName)
+	if err != nil {
+		log.Printf("Error: Failed to set variables with drush. Error message: %v\n", err.Error())
+		return db, err
+	}
+
+	if templ.SSLServer.DomainInfo.DomainName != "" {
+		s.Drush.VariableSet(templ, "securepages_basepath_ssl", "//"+templ.SSLServer.DomainInfo.DomainName)
 	}
 
 	log.Println("Database succesfully imported.")
@@ -175,14 +170,14 @@ func (s *Site) GetSiteTemplateDomains(templ *models.InstallTemplate) *models.Sit
 	domains := models.NewSiteDomains()
 
 	// Get domains
-	domains.SetDomain(templ.InstallInfo.ServerName)
-	domains.SetDomain(templ.HttpServer.ServerName)
-	domains.SetDomain(templ.SSLServer.ServerName)
+	domains.SetDomain(templ.InstallInfo.DomainInfo)
+	domains.SetDomain(templ.HttpServer.DomainInfo)
+	domains.SetDomain(templ.SSLServer.DomainInfo)
 
-	for _, domain := range templ.HttpServer.ServerAliases {
+	for _, domain := range templ.HttpServer.DomainAliases {
 		domains.SetDomain(domain)
 	}
-	for _, domain := range templ.SSLServer.ServerAliases {
+	for _, domain := range templ.SSLServer.DomainAliases {
 		domains.SetDomain(domain)
 	}
 
@@ -195,7 +190,7 @@ func (s *Site) GetSiteTemplateDomains(templ *models.InstallTemplate) *models.Sit
 func (s *Site) CreateDomainSymlinks(templ *models.InstallTemplate, domains *models.SiteDomains) {
 	for _, domain := range domains.Domains {
 		pathToSubDir := filepath.Join(templ.InstallInfo.DrupalRoot, "sites", templ.InstallInfo.SubDirectory)
-		pathToDomain := filepath.Join(templ.InstallInfo.DrupalRoot, "sites", domain)
+		pathToDomain := filepath.Join(templ.InstallInfo.DrupalRoot, "sites", domain.DomainName)
 
 		if _, err := os.Stat(pathToDomain); err != nil {
 			if os.IsNotExist(err) {
@@ -203,6 +198,7 @@ func (s *Site) CreateDomainSymlinks(templ *models.InstallTemplate, domains *mode
 				if err != nil {
 					log.Printf("Error creating symlink: %v\n", err.Error())
 				}
+				templ.RollBack.AddFileFunction(utils.RemoveFile, pathToDomain)
 			}
 		}
 	}
@@ -277,35 +273,102 @@ func (s *Site) InstallRootStatus(info *models.SiteInstallConfig) (*models.SiteRo
 	return &rootInfo, nil
 }
 
-func (s *Site) AddToHosts(templ *models.InstallTemplate, domains *models.SiteDomains) error {
-	fi, err := os.OpenFile("/etc/hosts", os.O_APPEND|os.O_WRONLY, 0644)
+func (s *Site) ReadApplicationHostsStr(hostsFile string) (models.HostsMap, error) {
+	hostsMap := models.NewHostsMap()
+
+	fi, err := os.Open(hostsFile)
+
 	if err != nil {
 		log.Println(err)
-		return err
+		return hostsMap, err
 	}
 
-	var (
-		domainStr    string
-		i            = 0
-		totalDomains = len(domains.Domains)
+	// Set local constants to indicate hosts read state.
+	const (
+		NOT_STARTED    = 0
+		STARTED        = 1
+		ENDED          = 2
+		START_READ_STR = "#SITE_INSTALLER_HOSTS START"
+		END_READ_STR   = "#SITE_INSTALLER_HOSTS END"
 	)
 
-	for _, domain := range domains.Domains {
-		if i == (totalDomains - 1) {
-			domainStr += domain
+	var (
+		// Make a read buffer
+		r         = bufio.NewReader(fi)
+		readState = NOT_STARTED
+	)
+
+	for {
+		// Read strings from file.
+		ln, err := r.ReadString(10)
+
+		// Trim spaces from string.
+		ln = strings.TrimSpace(ln)
+
+		// Get application hosts read start.
+		if ln == START_READ_STR {
+			log.Println("Application hosts read started.")
+			readState = STARTED
+			continue
+		}
+
+		// Get application hosts read end and brake.
+		if ln == END_READ_STR {
+			log.Println("Application hosts read ended.")
+			readState = ENDED
 			break
 		}
 
-		domainStr += domain + " "
-		i++
+		if readState == STARTED {
+			hd := models.NewHostDomains()
+			err := hd.ParseHostString(ln)
+			if err != nil {
+				log.Println(err)
+			}
+			hostsMap.AddHostDomains(hd)
+		}
+
+		// If error wasn't nil return error.
+		if err != nil && err != io.EOF {
+			return hostsMap, err
+		}
+
+		// If no bytes where read return from loop.
+		if err == io.EOF {
+			break
+		}
 	}
 
-	str := fmt.Sprintf("%v %v\n", "127.0.0.1", domainStr)
-	_, err = fi.WriteString(str)
+	if readState != ENDED {
+		msg := fmt.Sprintf("No application hosts found on %v.\n", hostsFile)
+		return hostsMap, errors.New(msg)
+	}
+
+	return hostsMap, nil
+}
+
+func (s *Site) AddToHosts(templ *models.InstallTemplate, domains *models.SiteDomains) error {
+	hostsFile := "/etc/hosts"
+
+	hostsMap, err := s.ReadApplicationHostsStr(hostsFile)
+	log.Println(hostsMap.GetHostDomains("127.0.0.1"))
 	if err != nil {
 		log.Println(err)
 		return err
 	}
+
+	_, err = os.OpenFile(hostsFile, os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	//str := fmt.Sprintf("%v %v\n", "127.0.0.1", domainStr)
+	/*_, err = fi.WriteString(str)
+	if err != nil {
+		log.Println(err)
+		return err
+	}*/
 
 	return nil
 }

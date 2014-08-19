@@ -31,21 +31,21 @@ func (c *SiteTemplate) WriteApacheConfig(tmpl *models.InstallTemplate) error {
 		// Write regular apache config.
 		log.Println("Write regular apache config.")
 
-		if tmpl.HttpServer.ServerName == "" {
-			tmpl.HttpServer.ServerName = tmpl.InstallInfo.ServerName
+		if tmpl.HttpServer.DomainInfo.DomainName == "" {
+			tmpl.HttpServer.DomainInfo = tmpl.InstallInfo.DomainInfo
 		}
 
-		if len(tmpl.HttpServer.ServerAliases) == 0 {
-			tmpl.HttpServer.ServerAliases = tmpl.InstallInfo.ServerAliases
+		if len(tmpl.HttpServer.DomainAliases) == 0 {
+			tmpl.HttpServer.DomainAliases = tmpl.InstallInfo.DomainAliases
 		}
 
 		if tmpl.HttpServer.ConfigRoot == "" {
 			tmpl.HttpServer.ConfigRoot = tmpl.InstallInfo.ServerConfigRoot
 		}
 
-		log.Println("http." + outputFileName)
-
-		err := c.WriteServerConfig(tmpl, "http."+outputFileName, tmpl.HttpServer.Template, tmpl.HttpServer.ConfigRoot)
+		outFile := "http." + outputFileName
+		log.Println(outFile)
+		err := c.WriteServerConfig(tmpl, outFile, tmpl.HttpServer.Template, tmpl.HttpServer.ConfigRoot)
 		if err != nil {
 			return err
 		}
@@ -54,21 +54,21 @@ func (c *SiteTemplate) WriteApacheConfig(tmpl *models.InstallTemplate) error {
 		// Write SSL apache config.
 		log.Println("Write SSL config.")
 
-		if tmpl.SSLServer.ServerName == "" {
-			tmpl.SSLServer.ServerName = tmpl.InstallInfo.ServerName
+		if tmpl.SSLServer.DomainInfo.DomainName == "" {
+			tmpl.SSLServer.DomainInfo = tmpl.InstallInfo.DomainInfo
 		}
 
-		if len(tmpl.SSLServer.ServerAliases) == 0 {
-			tmpl.SSLServer.ServerAliases = tmpl.InstallInfo.ServerAliases
+		if len(tmpl.SSLServer.DomainAliases) == 0 {
+			tmpl.SSLServer.DomainAliases = tmpl.InstallInfo.DomainAliases
 		}
 
 		if tmpl.SSLServer.ConfigRoot == "" {
 			tmpl.SSLServer.ConfigRoot = tmpl.InstallInfo.ServerConfigRoot
 		}
 
-		log.Println("ssl." + outputFileName)
-
-		err := c.WriteServerConfig(tmpl, "ssl."+outputFileName, tmpl.SSLServer.Template, tmpl.SSLServer.ConfigRoot)
+		outFile := "ssl." + outputFileName
+		log.Println(outFile)
+		err := c.WriteServerConfig(tmpl, outFile, tmpl.SSLServer.Template, tmpl.SSLServer.ConfigRoot)
 		if err != nil {
 			return err
 		}
@@ -80,7 +80,8 @@ func (c *SiteTemplate) WriteApacheConfig(tmpl *models.InstallTemplate) error {
 func (c *SiteTemplate) WriteServerConfig(tmpl *models.InstallTemplate, outputFileName string, templateFile string, configRoot string) error {
 	t := template.Must(template.New("server.config").ParseFiles(templateFile))
 
-	fo, err := os.Create(filepath.Join(configRoot, outputFileName))
+	fullPath := filepath.Join(configRoot, outputFileName)
+	fo, err := os.Create(fullPath)
 	if err != nil {
 		log.Println(err)
 		return err
@@ -96,6 +97,9 @@ func (c *SiteTemplate) WriteServerConfig(tmpl *models.InstallTemplate, outputFil
 	if err != nil {
 		return err
 	}
+
+	// Rollback: Remove server config file.
+	tmpl.RollBack.AddFileFunction(utils.RemoveFile, fullPath)
 
 	return nil
 }
