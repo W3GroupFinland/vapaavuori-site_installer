@@ -28,23 +28,23 @@ random = true
 drupal-root = /Users/tuomasvapaavuori/Sites/test_auto/drupal-7.31
 install-type = template
 template-path =  /Users/tuomasvapaavuori/go/src/github.com/tuomasvapaavuori/site_installer/templates/site-templates/template1
-sitename = local.kahvimuki.fi
-server-name = local.kahvimuki.fi
-sub-directory = local.kahvimuki-files.fi
+sitename = local.kahvimuki2.fi
+#server-name = local.kahvimuki2.fi
+sub-directory = local.kahvimuki2-files.fi
 http-user = _www
 http-group = _www
 server-config-root = /Users/tuomasvapaavuori/Sites/test_auto/config/apache
 
 # Settings for http server config.
 [http-server]
-server-name = local.kahvimuki.fi
+#server-name = local.kahvimuki2.fi
 type = apache
 template = /Users/tuomasvapaavuori/go/src/github.com/tuomasvapaavuori/site_installer/templates/server/apache/default.conf
 port = 80
 
 # Settings for ssl server config.
 [ssl-server]
-server-name = local.ssl-kahvimuki.fi
+#server-name = local.ssl-kahvimuki2.fi
 type = apache
 template = /Users/tuomasvapaavuori/go/src/github.com/tuomasvapaavuori/site_installer/templates/server/apache/ssl.default.conf
 port = 443

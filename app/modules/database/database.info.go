@@ -99,7 +99,39 @@ func (di *DatabaseInfo) SetDBName(dbName *models.RandomValue) *DatabaseInfo {
 	return di
 }
 
-func (di *DatabaseInfo) CreateDatabase() (*DatabaseInfo, error) {
+func (di *DatabaseInfo) CreateUser() error {
+	// Create User on hosts.
+	u := models.User{Username: di.User.Value, Password: di.Password.Value}
+	err := di.DataStore.CreateUserOnHosts(&u, di.Hosts)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	// Grant user privileges on hosts.
+	err = di.DataStore.GrantUserPrivilegesOnHosts(&u, di.DbName.Value, di.Hosts, di.Privileges, di.GrantOption)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	msg := "Created database with following info:\n"
+	msg += "Username: %v\n"
+	msg += "Password: %v\n"
+	msg += "Hosts: %v\n"
+	msg += "Database name: %v\n"
+	msg += "Privileges: %v\n"
+	msg += "With grant option: %v\n\n"
+
+	priv := fmt.Sprint(di.Privileges)
+	hosts := fmt.Sprint(di.Hosts)
+
+	log.Printf(msg, di.User.Value, di.Password.Value, hosts, di.DbName.Value, priv, di.GrantOption)
+
+	return nil
+}
+
+func (di *DatabaseInfo) CreateDatabase() error {
 	// Check all values have been given.
 	if di.User.Value == "" || di.Password.Value == "" || di.DbName.Value == "" || len(di.Privileges) == 0 || len(di.Hosts) == 0 {
 
@@ -115,42 +147,15 @@ func (di *DatabaseInfo) CreateDatabase() (*DatabaseInfo, error) {
 		hosts := fmt.Sprint(di.Hosts)
 
 		log.Printf(msg, di.User.Value, di.Password.Value, hosts, di.DbName.Value, priv, di.GrantOption)
-		return di, errors.New("Database creating failed.")
+		return errors.New("Database creating failed.")
 	}
 
 	// Create database.
 	err := di.DataStore.CreateDatabase(di.DbName.Value)
 	if err != nil {
 		log.Println(err)
-		return di, err
+		return err
 	}
 
-	// Create User on hosts.
-	u := models.User{Username: di.User.Value, Password: di.Password.Value}
-	err = di.DataStore.CreateUserOnHosts(&u, di.Hosts)
-	if err != nil {
-		log.Println(err)
-		return di, err
-	}
-
-	// Grant user privileges on hosts.
-	err = di.DataStore.GrantUserPrivilegesOnHosts(&u, di.DbName.Value, di.Hosts, di.Privileges, di.GrantOption)
-	if err != nil {
-		log.Println(err)
-		return di, err
-	}
-
-	msg := "Created database with following info:\n"
-	msg += "Username: %v\n"
-	msg += "Password: %v\n"
-	msg += "Hosts: %v\n"
-	msg += "Database name: %v\n"
-	msg += "Privileges: %v\n"
-	msg += "With grant option: %v\n\n"
-
-	priv := fmt.Sprint(di.Privileges)
-	hosts := fmt.Sprint(di.Hosts)
-
-	log.Printf(msg, di.User.Value, di.Password.Value, hosts, di.DbName.Value, priv, di.GrantOption)
-	return di, nil
+	return nil
 }

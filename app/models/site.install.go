@@ -1,16 +1,16 @@
 package models
 
 type SiteInstallConfig struct {
-	DrupalRoot       string   `gcfg:"drupal-root"`
-	InstallType      string   `gcfg:"install-type"`
-	TemplatePath     string   `gcfg:"template-path"`
-	SiteName         string   `gcfg:"sitename"`
-	ServerName       string   `gcfg:"server-name"`
-	ServerAliases    []string `gcfg:"server-alias"`
-	SubDirectory     string   `gcfg:"sub-directory"`
-	HttpUser         string   `gcfg:"http-user"`
-	HttpGroup        string   `gcfg:"http-group"`
-	ServerConfigRoot string   `gcfg:"server-config-root"`
+	DrupalRoot       string `gcfg:"drupal-root"`
+	InstallType      string `gcfg:"install-type"`
+	TemplatePath     string `gcfg:"template-path"`
+	SiteName         string `gcfg:"sitename"`
+	DomainInfo       *Domain
+	DomainAliases    []*Domain
+	SubDirectory     string `gcfg:"sub-directory"`
+	HttpUser         string `gcfg:"http-user"`
+	HttpGroup        string `gcfg:"http-group"`
+	ServerConfigRoot string `gcfg:"server-config-root"`
 }
 
 func NewSiteInstallConfig() *SiteInstallConfig {

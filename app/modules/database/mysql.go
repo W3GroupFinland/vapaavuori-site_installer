@@ -94,8 +94,44 @@ func (d *DataStore) CreateDatabase(name string) error {
 		return err
 	}
 
+	log.Printf("%v rows affected.\n", affected)
+	log.Printf("Created database %v.\n", name)
+	return nil
+}
+
+func (d *DataStore) RemoveDatabase(name string) error {
+	tx, err := d.DB.Begin()
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	q := fmt.Sprintf("DROP DATABASE %v", name)
+
+	res, err := tx.Exec(q)
+	if err != nil {
+		log.Println(err)
+		// Rollback
+		err := tx.Rollback()
+		if err != nil {
+			log.Fatalln(err)
+		}
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		log.Println(err)
+	}
+
+	affected, err := res.RowsAffected()
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
 	log.Printf("%v rows affected.", affected)
-	log.Printf("Created database %v.", name)
+	log.Printf("Succesfully removed database %v.\n", name)
 	return nil
 }
 
@@ -142,7 +178,49 @@ func (d *DataStore) CreateUser(tx *sql.Tx, u *models.User, host string) error {
 		return err
 	}
 
-	log.Printf("Created user %v on hostname %v.", u.Username, host)
+	log.Printf("Created user %v on hostname %v.\n", u.Username, host)
+	return nil
+}
+
+func (d *DataStore) RemoveUser(tx *sql.Tx, userName string, host string) error {
+	q := fmt.Sprintf("DROP USER '%v'@'%v'", userName, host)
+
+	res, err := tx.Exec(q)
+	if err != nil {
+		return err
+	}
+
+	_, err = res.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	log.Printf("Removed user %v on hostname %v.\n", userName, host)
+	return nil
+}
+
+func (d *DataStore) RemoveUserOnHosts(userName string, hosts []string) error {
+	tx, err := d.DB.Begin()
+	if err != nil {
+		log.Println(err)
+		tx.Rollback()
+		return err
+	}
+
+	for _, hostName := range hosts {
+		err := d.RemoveUser(tx, userName, hostName)
+		if err != nil {
+			log.Println(err)
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		log.Println(err)
+		tx.Rollback()
+		return err
+	}
+
 	return nil
 }
 
