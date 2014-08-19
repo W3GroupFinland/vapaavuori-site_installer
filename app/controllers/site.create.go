@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
 	a "github.com/tuomasvapaavuori/site_installer/app/app_base"
@@ -9,6 +10,7 @@ import (
 	"github.com/tuomasvapaavuori/site_installer/app/modules/database"
 	"github.com/tuomasvapaavuori/site_installer/app/modules/utils"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -273,55 +275,51 @@ func (s *Site) InstallRootStatus(info *models.SiteInstallConfig) (*models.SiteRo
 	return &rootInfo, nil
 }
 
-func (s *Site) ReadApplicationHostsStr(hostsFile string) (models.HostsMap, error) {
-	hostsMap := models.NewHostsMap()
-
+func (s *Site) ReadHostsFile(hostsFile string) (models.HostsMap, error) {
 	fi, err := os.Open(hostsFile)
 
 	if err != nil {
 		log.Println(err)
-		return hostsMap, err
+		return models.HostsMap{}, err
 	}
 
-	// Set local constants to indicate hosts read state.
-	const (
-		NOT_STARTED    = 0
-		STARTED        = 1
-		ENDED          = 2
-		START_READ_STR = "#SITE_INSTALLER_HOSTS START"
-		END_READ_STR   = "#SITE_INSTALLER_HOSTS END"
-	)
+	defer fi.Close()
 
+	return s.ParseHostsContent(fi)
+}
+
+func (s *Site) ParseHostsContent(content io.Reader) (models.HostsMap, error) {
+	hostsMap := models.NewHostsMap()
 	var (
 		// Make a read buffer
-		r         = bufio.NewReader(fi)
-		readState = NOT_STARTED
+		r         = bufio.NewReader(content)
+		readState = models.READ_NOT_STARTED
 	)
 
 	for {
 		// Read strings from file.
-		ln, err := r.ReadString(10)
+		ln, err := r.ReadString(models.NEW_LINE_BYTE)
 
 		// Trim spaces from string.
 		ln = strings.TrimSpace(ln)
 
 		// Get application hosts read start.
-		if ln == START_READ_STR {
+		if ln == models.HOSTS_START_READ_STR {
 			log.Println("Application hosts read started.")
-			readState = STARTED
+			readState = models.READ_STARTED
 			continue
 		}
 
 		// Get application hosts read end and brake.
-		if ln == END_READ_STR {
+		if ln == models.HOSTS_END_READ_STR {
 			log.Println("Application hosts read ended.")
-			readState = ENDED
+			readState = models.READ_ENDED
 			break
 		}
 
-		if readState == STARTED {
+		if readState == models.READ_STARTED {
 			hd := models.NewHostDomains()
-			err := hd.ParseHostString(ln)
+			err := hd.Parse(ln)
 			if err != nil {
 				log.Println(err)
 			}
@@ -339,19 +337,100 @@ func (s *Site) ReadApplicationHostsStr(hostsFile string) (models.HostsMap, error
 		}
 	}
 
-	if readState != ENDED {
-		msg := fmt.Sprintf("No application hosts found on %v.\n", hostsFile)
+	if readState != models.READ_ENDED {
+		msg := fmt.Sprintf("No application hosts found on hosts file.\n")
 		return hostsMap, errors.New(msg)
 	}
 
 	return hostsMap, nil
 }
 
+func (s *Site) WriteNewHosts(hostsFile string, hostsMap *models.HostsMap) error {
+	fi, err := os.Open(hostsFile)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	r := bufio.NewReader(fi)
+
+	var (
+		// Create temporary slice of bytes.
+		temp      []byte
+		readState = models.READ_NOT_STARTED
+	)
+	for {
+		// Prefixed indicates if the current line was only partially read.
+		// If is prefixed we won't later add new line byte to slice.
+		ln, prefixed, err := r.ReadLine()
+		str := string(ln)
+
+		// If error wasn't nil return error.
+		if err != nil && err != io.EOF {
+			log.Println(err)
+			return err
+		}
+
+		// If no bytes where read return from loop.
+		if err == io.EOF {
+			break
+		}
+
+		if str == models.HOSTS_START_READ_STR {
+			// Set read state started.
+			readState = models.READ_STARTED
+			// Write hosts map as bytes.
+			temp = append(temp, hostsMap.Bytes(models.SPACE_BYTE, models.NEW_LINE_BYTE)...)
+		}
+
+		if str == models.HOSTS_END_READ_STR {
+			readState = models.READ_ENDED
+			// Empty the string so we don't add snippet end line twice.
+			ln = ln[:0]
+			str = ""
+		}
+
+		// If read started is indicated, don't write contents.
+		// Hosts in snippet area are rebuild.
+		if readState != models.READ_STARTED {
+			if len(ln) > 0 {
+				temp = append(temp, ln...)
+				// If prefixed we don't add new line byte to slice.
+				if prefixed {
+					continue
+				}
+
+				temp = append(temp, models.NEW_LINE_BYTE)
+			}
+		}
+	}
+	ok, err := s.HostsContentAssertsTrue(bytes.NewReader(temp))
+	if !ok {
+		return err
+	}
+
+	_, err = utils.CreateBackupFile(hostsFile)
+	err = ioutil.WriteFile(hostsFile, temp, 0644)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	return nil
+}
+
+func (s *Site) HostsContentAssertsTrue(content io.Reader) (bool, error) {
+	_, err := s.ParseHostsContent(content)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
 func (s *Site) AddToHosts(templ *models.InstallTemplate, domains *models.SiteDomains) error {
 	hostsFile := "/etc/hosts"
 
-	hostsMap, err := s.ReadApplicationHostsStr(hostsFile)
-	log.Println(hostsMap.GetHostDomains("127.0.0.1"))
+	_, err := s.ReadHostsFile(hostsFile)
 	if err != nil {
 		log.Println(err)
 		return err
