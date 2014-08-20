@@ -171,17 +171,24 @@ func TestHostsDomainsFromFile(t *testing.T) {
 		t.Error(err)
 	}
 
+	b, err := ioutil.ReadFile(fp)
+	t.Log(string(b))
+
 	site := controllers.Site{}
+	t.Log("READING HOST FILE.")
 	hostsMap, err := site.ReadHostsFile(fp)
 	if err != nil {
 		t.Error(err)
 	}
+	hostDomains, err := hostsMap.GetHostDomains(expectedHostName1)
+	t.Log(hostDomains.String())
+
 	hostsMap.AddDomain(&models.Domain{Host: expectedHostName1, DomainName: "local.example.org"})
 	hostsMap.AddDomain(&models.Domain{Host: expectedHostName1, DomainName: "local.example-site.org"})
 	hostsMap.AddDomain(&models.Domain{Host: expectedHostName2, DomainName: "local.ensemble.org"})
 	hostsMap.AddDomain(&models.Domain{Host: "only.testing.net", DomainName: "local.ensemble.org"})
 
-	hostDomains, err := hostsMap.GetHostDomains(expectedHostName1)
+	hostDomains, err = hostsMap.GetHostDomains(expectedHostName1)
 	if hostDomains.String() != expectedHostStr1 {
 		t.Errorf("hostsMap.GetHostDomains(\"%v\") = %v, expected = %v", expectedHostName1, hostDomains.String(), expectedHostStr1)
 	}
