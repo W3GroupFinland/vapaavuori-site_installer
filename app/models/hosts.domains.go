@@ -25,12 +25,14 @@ func (hd *HostDomains) DomainExists(name string) bool {
 	return true
 }
 
-func (hd *HostDomains) AddDomain(domain *Domain) {
+func (hd *HostDomains) AddDomain(domain *Domain) error {
 	if hd.DomainExists(domain.DomainName) {
 		log.Printf("Domain %v exists already on host %v.\n", domain.DomainName, hd.Host)
-		return
+		return errors.New("Domain exists already.")
 	}
 	hd.Domains[domain.DomainName] = domain
+
+	return nil
 }
 
 func (hd *HostDomains) RemoveDomain(name string) {

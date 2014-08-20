@@ -1,7 +1,7 @@
 # Settings for application database.
 [mysql]
 user = hostmaster
-password = password
+password = hostmaster
 protocol = tcp
 host = 127.0.0.1
 port = 3306
@@ -17,3 +17,7 @@ restart = apachectl restart
 # Backup directory
 [backup]
 directory = /tmp
+
+# Hosts file directory
+[hosts]
+directory = /etc/hosts

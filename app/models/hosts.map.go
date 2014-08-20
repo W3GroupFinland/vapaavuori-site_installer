@@ -50,14 +50,16 @@ func (hm HostsMap) GetHostDomains(host string) (*HostDomains, error) {
 	return hm[host], nil
 }
 
-func (hm HostsMap) AddDomain(d *Domain) {
+func (hm HostsMap) AddDomain(d *Domain) error {
 	if !hm.HostExists(d.Host) {
 		hd := NewHostDomains()
 		hd.Host = d.Host
 		hm[d.Host] = hd
 	}
 
-	hm[d.Host].AddDomain(d)
+	err := hm[d.Host].AddDomain(d)
+
+	return err
 }
 
 func (hm HostsMap) String(sep string) (out string) {

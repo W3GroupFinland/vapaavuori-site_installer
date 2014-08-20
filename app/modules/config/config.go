@@ -38,12 +38,17 @@ type Backup struct {
 	Directory string
 }
 
+type Hosts struct {
+	Directory string
+}
+
 type Config struct {
 	Host       Host
 	Mysql      Mysql
 	Drush      Drush
 	HttpServer HttpServer `gcfg:"http-server"`
 	Backup     Backup
+	Hosts      Hosts
 }
 
 func NewConfig() *Config {
