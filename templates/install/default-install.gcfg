@@ -25,26 +25,23 @@ random = true
 
 # General info of drupal project root and install type.
 [install-info]
-drupal-root = /Users/tuomasvapaavuori/Sites/test_auto/drupal-7.31
+drupal-root = /Users/tuomasvapaavuori/Sites/tivia/tivia_drupal
 install-type = template
-template-path =  /Users/tuomasvapaavuori/go/src/github.com/tuomasvapaavuori/site_installer/templates/site-templates/template1
-sitename = local.kahvimuki2.fi
-#server-name = local.kahvimuki2.fi
-sub-directory = local.kahvimuki2-files.fi
+template-path =  /Users/tuomasvapaavuori/go/src/github.com/tuomasvapaavuori/site_installer/templates/site-templates/template2
+sitename = local.tivia-drupal2.fi
+sub-directory = local.tivia-drupal2.fi
 http-user = _www
 http-group = _www
 server-config-root = /Users/tuomasvapaavuori/Sites/test_auto/config/apache
 
 # Settings for http server config.
 [http-server]
-#server-name = local.kahvimuki2.fi
 type = apache
 template = /Users/tuomasvapaavuori/go/src/github.com/tuomasvapaavuori/site_installer/templates/server/apache/default.conf
 port = 80
 
 # Settings for ssl server config.
 [ssl-server]
-#server-name = local.ssl-kahvimuki2.fi
 type = apache
 template = /Users/tuomasvapaavuori/go/src/github.com/tuomasvapaavuori/site_installer/templates/server/apache/ssl.default.conf
 port = 443

@@ -180,24 +180,21 @@ func (s *Site) HostsContentAssertsTrue(content io.Reader) (bool, error) {
 func (s *Site) AddToHosts(templ *models.InstallTemplate, domains *models.SiteDomains) error {
 	hostsFile := "/etc/hosts"
 
-	_, err := s.ReadHostsFile(hostsFile)
+	hostsMap, err := s.ReadHostsFile(hostsFile)
 	if err != nil {
 		log.Println(err)
 		return err
 	}
 
-	_, err = os.OpenFile(hostsFile, os.O_APPEND|os.O_WRONLY, 0644)
+	for _, domain := range domains.Domains {
+		hostsMap.AddDomain(domain)
+	}
+
+	err = s.WriteNewHosts(hostsFile, &hostsMap)
 	if err != nil {
 		log.Println(err)
 		return err
 	}
-
-	//str := fmt.Sprintf("%v %v\n", "127.0.0.1", domainStr)
-	/*_, err = fi.WriteString(str)
-	if err != nil {
-		log.Println(err)
-		return err
-	}*/
 
 	return nil
 }
