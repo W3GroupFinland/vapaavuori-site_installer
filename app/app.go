@@ -37,6 +37,13 @@ func Init() *Application {
 		log.Fatalln(err)
 	}
 
+	cmd, err := a.Base.Config.HttpServer.GetRestartCmd()
+	if err == nil {
+		log.Println(err)
+	}
+
+	a.Base.Commands.HttpServer.Restart = cmd
+
 	return &a
 }
 
@@ -68,19 +75,9 @@ func (a *Application) Run() {
 		return
 	}
 
-	dms := models.NewSiteDomains()
-	dms.SetDomain(&models.Domain{
-		Host:       "127.0.0.1",
-		DomainName: "local.luolamies.fi",
-	})
-	dms.SetDomain(&models.Domain{
-		Host:       "127.0.0.1",
-		DomainName: "local.amputaatio.fi",
-	})
-
-	a.Controllers.Site.AddToHosts(tmpl, dms)
-
-	return
+	tmpl.InstallInfo.DomainInfo = &models.Domain{Host: "127.0.0.1", DomainName: "local.tivia-drupal2.fi"}
+	tmpl.HttpServer.DomainInfo = &models.Domain{Host: "127.0.0.1", DomainName: "local.tivia-drupal2.fi"}
+	tmpl.SSLServer.DomainInfo = &models.Domain{Host: "127.0.0.1", DomainName: "local.ssl-tivia-drupal2.fi"}
 
 	// Initialize rollback functionality.
 	tmpl.RollBack = models.NewSiteRollBack(tmpl)
@@ -95,6 +92,7 @@ func (a *Application) Run() {
 	err = a.Controllers.SiteTemplate.WriteApacheConfig(tmpl)
 	if err != nil {
 		log.Println(err)
+		tmpl.RollBack.Execute()
 		return
 	}
 
@@ -107,12 +105,9 @@ func (a *Application) Run() {
 
 	a.Controllers.Site.CreateDomainSymlinks(tmpl, domains)
 
-	err = a.Controllers.System.ApacheRestart()
+	err = a.Controllers.System.HttpServerRestart()
 	if err != nil {
 		log.Println(err)
 		return
 	}
-
-	log.Println(tmpl.RollBack)
-	tmpl.RollBack.Execute()
 }
