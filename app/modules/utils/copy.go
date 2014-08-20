@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 type CopyTarget struct {
@@ -51,6 +52,22 @@ func CopyFile(source string, destination string) error {
 	}
 
 	return err
+}
+
+func CreateBackupFile(source string) (destination string, err error) {
+	const (
+		// File name suffix as current time.
+		layout = "2006-01-02T15-04-05"
+	)
+	t := time.Now()
+	destination = source + "_" + t.Format(layout)
+
+	err = CopyFile(source, destination)
+	if err != nil {
+		return "", err
+	}
+
+	return destination, nil
 }
 
 // Walk function to recursively copy files and directories in given path.

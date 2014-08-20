@@ -37,7 +37,8 @@ func (hd *HostDomains) RemoveDomain(name string) {
 	delete(hd.Domains, name)
 }
 
-func (hd *HostDomains) ParseHostString(str string) error {
+func (hd *HostDomains) Parse(str string) error {
+	str = strings.TrimSpace(str)
 	parts := strings.Split(str, " ")
 	if len(parts) < 2 {
 		return errors.New("Not enough parts to parse from host string.")
@@ -58,7 +59,7 @@ func (hd *HostDomains) ParseHostString(str string) error {
 	return nil
 }
 
-func (hd *HostDomains) ToString() string {
+func (hd *HostDomains) String() string {
 	var items []string
 	// First item of slice is host name
 	items = append(items, hd.Host)
@@ -69,4 +70,16 @@ func (hd *HostDomains) ToString() string {
 	}
 
 	return strings.Join(items, " ")
+}
+
+func (hd *HostDomains) Bytes(sep byte) (out []byte) {
+	out = append(out, []byte(hd.Host)...)
+	out = append(out, sep)
+
+	for _, domain := range hd.Domains {
+		out = append(out, []byte(domain.DomainName)...)
+		out = append(out, sep)
+	}
+
+	return out
 }
