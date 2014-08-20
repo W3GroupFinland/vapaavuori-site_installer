@@ -101,6 +101,7 @@ func (s *Site) WriteNewHosts(hostsFile string, hostsMap *models.HostsMap) error 
 		log.Println(err)
 		return err
 	}
+	defer fi.Close()
 	r := bufio.NewReader(fi)
 
 	var (
@@ -158,8 +159,15 @@ func (s *Site) WriteNewHosts(hostsFile string, hostsMap *models.HostsMap) error 
 		return err
 	}
 
-	_, err = utils.CreateBackupFile(hostsFile)
-	err = ioutil.WriteFile(hostsFile, temp, 0644)
+	// Get file stats.
+	hostsStat, err := os.Stat(hostsFile)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	// Write new content to hosts file.
+	err = ioutil.WriteFile(hostsFile, temp, hostsStat.Mode().Perm())
 	if err != nil {
 		log.Println(err)
 		return err
@@ -187,7 +195,17 @@ func (s *Site) AddToHosts(templ *models.InstallTemplate, domains *models.SiteDom
 	}
 
 	for _, domain := range domains.Domains {
-		hostsMap.AddDomain(domain)
+		err := hostsMap.AddDomain(domain)
+		if err != nil {
+			continue
+		}
+	}
+
+	// Create backup of hosts file.
+	backup, err := utils.CreateBackupFile(hostsFile, s.Base.Config.Backup.Directory)
+	if err != nil {
+		log.Println(err)
+		return err
 	}
 
 	err = s.WriteNewHosts(hostsFile, &hostsMap)
@@ -195,6 +213,32 @@ func (s *Site) AddToHosts(templ *models.InstallTemplate, domains *models.SiteDom
 		log.Println(err)
 		return err
 	}
+
+	templ.RollBack.AddFileRecoverFunction(s.RecoverBackupFile, &models.FileBackup{NewFile: hostsFile, Backup: backup})
+
+	return nil
+}
+
+func (s *Site) RecoverBackupFile(fb *models.FileBackup) error {
+	fi, err := os.Stat(fb.Backup)
+	if err != nil {
+		log.Printf("Error reading backup file %v.\n", fb.Backup)
+		return err
+	}
+
+	data, err := ioutil.ReadFile(fb.Backup)
+	if err != nil {
+		log.Printf("Error reading backup file %v.\n", fb.Backup)
+		return err
+	}
+
+	err = ioutil.WriteFile(fb.NewFile, data, fi.Mode().Perm())
+	if err != nil {
+		log.Printf("Error writing recovered file %v.\n", fb.NewFile)
+		return err
+	}
+
+	log.Printf("Recovered backup file %v to %v.\n", fb.Backup, fb.NewFile)
 
 	return nil
 }

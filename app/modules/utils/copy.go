@@ -54,13 +54,15 @@ func CopyFile(source string, destination string) error {
 	return err
 }
 
-func CreateBackupFile(source string) (destination string, err error) {
+func CreateBackupFile(source string, backupPath string) (destination string, err error) {
 	const (
 		// File name suffix as current time.
 		layout = "2006-01-02T15-04-05"
 	)
 	t := time.Now()
-	destination = source + "_" + t.Format(layout)
+
+	_, file := filepath.Split(source)
+	destination = filepath.Join(backupPath, file+"_"+t.Format(layout))
 
 	err = CopyFile(source, destination)
 	if err != nil {

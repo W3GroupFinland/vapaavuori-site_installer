@@ -25,25 +25,25 @@ random = true
 
 # General info of drupal project root and install type.
 [install-info]
-drupal-root = /Users/tuomasvapaavuori/Sites/tivia/tivia_drupal
+drupal-root = /Users/tuomas/Sites/www/tivia/tivia-drupal
 install-type = template
-template-path =  /Users/tuomasvapaavuori/go/src/github.com/tuomasvapaavuori/site_installer/templates/site-templates/template2
-sitename = local.tivia-drupal2.fi
-sub-directory = local.tivia-drupal2.fi
+template-path =  /Users/tuomas/go/src/github.com/tuomasvapaavuori/site_installer/templates/site-templates/template1
+sitename = local.tivia-drupal1.fi
+sub-directory = local.tivia-drupal1.fi
 http-user = _www
 http-group = _www
-server-config-root = /Users/tuomasvapaavuori/Sites/test_auto/config/apache
+server-config-root = /Users/tuomas/Sites/www/tivia/conf/apache
 
 # Settings for http server config.
 [http-server]
 type = apache
-template = /Users/tuomasvapaavuori/go/src/github.com/tuomasvapaavuori/site_installer/templates/server/apache/default.conf
+template = /Users/tuomas/go/src/github.com/tuomasvapaavuori/site_installer/templates/server/apache/default.conf
 port = 80
 
 # Settings for ssl server config.
 [ssl-server]
 type = apache
-template = /Users/tuomasvapaavuori/go/src/github.com/tuomasvapaavuori/site_installer/templates/server/apache/ssl.default.conf
+template = /Users/tuomas/go/src/github.com/tuomasvapaavuori/site_installer/templates/server/apache/ssl.default.conf
 port = 443
 certificate = /Users/tuomasvapaavuori/go/src/github.com/tuomasvapaavuori/site_installer/templates/server/certs/ssl.crt
 key = /Users/tuomasvapaavuori/go/src/github.com/tuomasvapaavuori/site_installer/templates/server/certs/ssl.key

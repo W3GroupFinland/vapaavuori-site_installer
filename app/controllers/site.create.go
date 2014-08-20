@@ -169,7 +169,6 @@ func (s *Site) GetSiteTemplateDomains(templ *models.InstallTemplate) *models.Sit
 	domains := models.NewSiteDomains()
 
 	// Get domains
-	domains.SetDomain(templ.InstallInfo.DomainInfo)
 	domains.SetDomain(templ.HttpServer.DomainInfo)
 	domains.SetDomain(templ.SSLServer.DomainInfo)
 

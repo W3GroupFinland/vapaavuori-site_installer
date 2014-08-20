@@ -3,8 +3,8 @@ package app
 import (
 	a "github.com/tuomasvapaavuori/site_installer/app/app_base"
 	"github.com/tuomasvapaavuori/site_installer/app/controllers"
-	//"github.com/tuomasvapaavuori/site_installer/app/modules/utils"
 	"github.com/tuomasvapaavuori/site_installer/app/models"
+	"github.com/tuomasvapaavuori/site_installer/app/modules/utils"
 	"log"
 )
 
@@ -44,6 +44,14 @@ func Init() *Application {
 
 	a.Base.Commands.HttpServer.Restart = cmd
 
+	if !utils.FileExists(a.Base.Config.Hosts.Directory) {
+		log.Fatalln("Hosts file doesn't exist. Please correct it before continuing.")
+	}
+
+	if !utils.FileExists(a.Base.Config.Backup.Directory) {
+		log.Fatalln("Backup directory doesn't exist. Please correct it before continuing.")
+	}
+
 	return &a
 }
 
@@ -75,9 +83,9 @@ func (a *Application) Run() {
 		return
 	}
 
-	tmpl.InstallInfo.DomainInfo = &models.Domain{Host: "127.0.0.1", DomainName: "local.tivia-drupal2.fi"}
-	tmpl.HttpServer.DomainInfo = &models.Domain{Host: "127.0.0.1", DomainName: "local.tivia-drupal2.fi"}
-	tmpl.SSLServer.DomainInfo = &models.Domain{Host: "127.0.0.1", DomainName: "local.ssl-tivia-drupal2.fi"}
+	tmpl.InstallInfo.DomainInfo = &models.Domain{Host: "127.0.0.1", DomainName: "local.tivia-drupal1.fi"}
+	tmpl.HttpServer.DomainInfo = &models.Domain{Host: "127.0.0.1", DomainName: "local.tivia-drupal1.fi"}
+	tmpl.SSLServer.DomainInfo = &models.Domain{Host: "127.0.0.1", DomainName: "local.ssl-tivia-drupal1.fi"}
 
 	// Initialize rollback functionality.
 	tmpl.RollBack = models.NewSiteRollBack(tmpl)
@@ -100,6 +108,7 @@ func (a *Application) Run() {
 	err = a.Controllers.Site.AddToHosts(tmpl, domains)
 	if err != nil {
 		log.Println(err)
+		tmpl.RollBack.Execute()
 		return
 	}
 
@@ -110,4 +119,6 @@ func (a *Application) Run() {
 		log.Println(err)
 		return
 	}
+
+	tmpl.RollBack.DeleteBackupFiles()
 }
