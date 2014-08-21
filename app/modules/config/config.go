@@ -62,9 +62,9 @@ func NewConfig() *Config {
 	return &Config{}
 }
 
-// Get configuration settings from file.
-func (c *Config) Read(file string) {
-	err := utils.ReadConfigFile(file, c)
+// Get configuration settings.
+func (c *Config) Read(data []byte) {
+	err := utils.ReadConfigData(data, c)
 	if err != nil {
 		log.Fatalln(err)
 	}

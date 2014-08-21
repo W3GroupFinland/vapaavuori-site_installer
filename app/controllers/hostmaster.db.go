@@ -31,10 +31,10 @@ func (c *HostmaterDB) InstallationExists(name string, rootFolder string) (bool, 
 	}
 
 	if id != 0 {
-		return true
+		return true, nil
 	}
 
-	return false
+	return false, nil
 }
 
 func (c *HostmaterDB) CreateSite() {

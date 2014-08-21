@@ -19,11 +19,11 @@ type Application struct {
 	}
 }
 
-func Init() *Application {
+func Init(config []byte) *Application {
 	// Create new application struct with application base.
 	a := Application{Base: a.NewAppBase()}
 	// Read application configuration from file.
-	a.Base.Config.Read("config/config.gcfg")
+	a.Base.Config.Read(config)
 	// Open database connection.
 	_, err := a.Base.DataStore.OpenConn(
 		a.Base.Config.Mysql.User,

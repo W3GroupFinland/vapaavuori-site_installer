@@ -2,6 +2,7 @@ package utils
 
 import (
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -56,7 +57,7 @@ func CopyFile(source string, destination string) error {
 
 func CreateBackupFile(source string, backupPath string) (destination string, err error) {
 	const (
-		// File name suffix as current time.
+		// File name suffix as layout time.
 		layout = "2006-01-02T15-04-05"
 	)
 	t := time.Now()
@@ -93,4 +94,18 @@ func (ct *CopyTarget) copyFilesWalkFunc(source string, info os.FileInfo, err err
 	err = CopyFile(source, destination)
 
 	return err
+}
+
+func ReadFileContents(file string) ([]byte, error) {
+	path, err := GetFileFullPath(file)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	return data, nil
 }
