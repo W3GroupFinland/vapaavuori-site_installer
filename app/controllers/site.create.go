@@ -168,14 +168,20 @@ func (s *Site) SiteTemplateInstallation(templ *models.InstallTemplate) (*databas
 func (s *Site) GetSiteTemplateDomains(templ *models.InstallTemplate) *models.SiteDomains {
 	domains := models.NewSiteDomains()
 
+	// Set types to domains so they can be later identified.
+	templ.HttpServer.DomainInfo.Type = models.DomainTypeServerName
+	templ.SSLServer.DomainInfo.Type = models.DomainTypeServerName
+
 	// Get domains
 	domains.SetDomain(templ.HttpServer.DomainInfo)
 	domains.SetDomain(templ.SSLServer.DomainInfo)
 
 	for _, domain := range templ.HttpServer.DomainAliases {
+		domain.Type = models.DomainTypeServerAlias
 		domains.SetDomain(domain)
 	}
 	for _, domain := range templ.SSLServer.DomainAliases {
+		domain.Type = models.DomainTypeServerAlias
 		domains.SetDomain(domain)
 	}
 
@@ -202,7 +208,7 @@ func (s *Site) CreateDomainSymlinks(templ *models.InstallTemplate, domains *mode
 	}
 }
 
-func (s *Site) InstallRootStatus(info *models.SiteInstallConfig) (*models.SiteRootInfo, error) {
+func (s *Site) InstallRootStatus(info *models.SiteInstallInfo) (*models.SiteRootInfo, error) {
 	out, err := s.Drush.Run("-r", info.DrupalRoot, "status")
 	if err != nil {
 		log.Println(err)

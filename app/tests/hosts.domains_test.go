@@ -175,7 +175,6 @@ func TestHostsDomainsFromFile(t *testing.T) {
 	t.Log(string(b))
 
 	site := controllers.Site{}
-	t.Log("READING HOST FILE.")
 	hostsMap, err := site.ReadHostsFile(fp)
 	if err != nil {
 		t.Error(err)

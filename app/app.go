@@ -16,6 +16,7 @@ type Application struct {
 		Site         *controllers.Site
 		SiteTemplate *controllers.SiteTemplate
 		System       *controllers.System
+		HostMasterDB *controllers.HostMasterDB
 	}
 }
 
@@ -61,6 +62,7 @@ func (a *Application) RegisterControllers() {
 	a.Controllers.Site = &controllers.Site{Drush: a.Controllers.Drush, Base: a.Base}
 	a.Controllers.SiteTemplate = &controllers.SiteTemplate{Base: a.Base}
 	a.Controllers.System = &controllers.System{Base: a.Base}
+	a.Controllers.HostMasterDB = &controllers.HostMasterDB{Base: a.Base}
 }
 
 func (a *Application) Run() {

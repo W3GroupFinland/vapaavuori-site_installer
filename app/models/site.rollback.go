@@ -6,16 +6,23 @@ import (
 )
 
 type (
-	TemplateRollBackFunction func(*InstallTemplate) error
-	FileRollBackFunction     func(fileName string) error
-	FileRecoverFunction      func(fb *FileBackup) error
+	TemplateRollBackFunction   func(*InstallTemplate) error
+	DatabaseIdRollBackFunction func(id int64) error
+	FileRollBackFunction       func(fileName string) error
+	FileRecoverFunction        func(fb *FileBackup) error
 )
 
 type SiteRollBack struct {
 	Template      *InstallTemplate
 	DBFunctions   []TemplateRollBackFunction
+	DBIDFunctions []DatabaseIdRollBack
 	FileFunctions []FileRollBack
 	FileRecovers  []FileRecover
+}
+
+type DatabaseIdRollBack struct {
+	Id       int64
+	Function DatabaseIdRollBackFunction
 }
 
 type FileRollBack struct {
@@ -39,6 +46,11 @@ func NewSiteRollBack(tmpl *InstallTemplate) *SiteRollBack {
 
 func (sb *SiteRollBack) AddDBFunction(rollBack TemplateRollBackFunction) {
 	sb.DBFunctions = append(sb.DBFunctions, rollBack)
+}
+
+func (sb *SiteRollBack) AddDBIdFunction(fn DatabaseIdRollBackFunction, id int64) {
+	dbRB := DatabaseIdRollBack{Id: id, Function: fn}
+	sb.DBIDFunctions = append(sb.DBIDFunctions, dbRB)
 }
 
 func (sb *SiteRollBack) AddFileFunction(fn FileRollBackFunction, fileName string) {
@@ -74,22 +86,34 @@ func (sb *SiteRollBack) DeleteBackupFiles() {
 func (sb *SiteRollBack) Execute() {
 	log.Println("Rolling back..")
 
-	for _, fn := range sb.DBFunctions {
-		err := fn(sb.Template)
+	// Process roll back functions in reverse order.
+	for i := len(sb.DBFunctions) - 1; i >= 0; i-- {
+		v := sb.DBFunctions[i]
+		err := v(sb.Template)
 		if err != nil {
 			log.Printf("Rollback error: %v\n", err.Error())
 		}
 	}
 
-	for _, fileFunc := range sb.FileFunctions {
-		err := fileFunc.Function(fileFunc.FileName)
+	for i := len(sb.DBIDFunctions) - 1; i >= 0; i-- {
+		v := sb.DBIDFunctions[i]
+		err := v.Function(v.Id)
 		if err != nil {
 			log.Printf("Rollback error: %v\n", err.Error())
 		}
 	}
 
-	for _, fileRecover := range sb.FileRecovers {
-		err := fileRecover.Function(fileRecover.FileBackup)
+	for i := len(sb.FileFunctions) - 1; i >= 0; i-- {
+		v := sb.FileFunctions[i]
+		err := v.Function(v.FileName)
+		if err != nil {
+			log.Printf("Rollback error: %v\n", err.Error())
+		}
+	}
+
+	for i := len(sb.FileFunctions) - 1; i >= 0; i-- {
+		v := sb.FileRecovers[i]
+		err := v.Function(v.FileBackup)
 		if err != nil {
 			log.Println("Rollback error: %v\n", err.Error())
 		}

@@ -7,7 +7,7 @@ type InstallTemplate struct {
 	MysqlUserPrivileges MysqlUserPrivileges `gcfg:"mysql-user-privileges"`
 	MysqlGrantOption    MysqlGrantOption    `gcfg:"mysql-grant-option"`
 	DatabaseName        RandomValue         `gcfg:"database-name"`
-	InstallInfo         SiteInstallConfig   `gcfg:"install-info"`
+	InstallInfo         SiteInstallInfo     `gcfg:"install-info"`
 	HttpServer          HttpServerTemplate  `gcfg:"http-server"`
 	SSLServer           SSLServerTemplate   `gcfg:"ssl-server"`
 	RollBack            *SiteRollBack
@@ -40,6 +40,6 @@ type SSLServerTemplate struct {
 	Key         string
 }
 
-func (it *InstallTemplate) GetSiteInstallConfig() *SiteInstallConfig {
+func (it *InstallTemplate) GetSiteInstallInfo() *SiteInstallInfo {
 	return &it.InstallInfo
 }

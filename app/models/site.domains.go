@@ -1,5 +1,10 @@
 package models
 
+const (
+	DomainTypeServerName  = "SERVER_NAME"
+	DomainTypeServerAlias = "SERVER_ALIAS"
+)
+
 type SiteDomains struct {
 	SiteName     string
 	SubDirectory string
@@ -7,8 +12,11 @@ type SiteDomains struct {
 }
 
 type Domain struct {
-	Host       string
-	DomainName string
+	Host           string
+	DomainName     string
+	Type           string
+	SiteId         int64
+	ServerConfigId int64
 }
 
 func NewSiteDomains() *SiteDomains {
