@@ -5,7 +5,7 @@ password = hostmaster
 protocol = tcp
 host = 127.0.0.1
 port = 3306
-dbname = information_schema
+dbname = hostmaster
 
 # Settings for drush command
 [drush]
@@ -13,6 +13,10 @@ dbname = information_schema
 # Settings for http server
 [http-server]
 restart = apachectl restart
+
+# Platform install root
+[platform]
+directory = /Users/tuomas/Sites/www/site-installer
 
 # Backup directory
 [backup]

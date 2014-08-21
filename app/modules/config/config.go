@@ -35,10 +35,16 @@ type HttpServer struct {
 }
 
 type Backup struct {
+	// TODO: Possible extra parameters to backup.
 	Directory string
 }
 
 type Hosts struct {
+	// TODO: Possible extra parameters to hosts.
+	Directory string
+}
+
+type Platform struct {
 	Directory string
 }
 
@@ -49,6 +55,7 @@ type Config struct {
 	HttpServer HttpServer `gcfg:"http-server"`
 	Backup     Backup
 	Hosts      Hosts
+	Platform   Platform
 }
 
 func NewConfig() *Config {

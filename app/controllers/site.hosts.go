@@ -186,7 +186,7 @@ func (s *Site) HostsContentAssertsTrue(content io.Reader) (bool, error) {
 }
 
 func (s *Site) AddToHosts(templ *models.InstallTemplate, domains *models.SiteDomains) error {
-	hostsFile := "/etc/hosts"
+	hostsFile := s.Base.Config.Hosts.Directory
 
 	hostsMap, err := s.ReadHostsFile(hostsFile)
 	if err != nil {

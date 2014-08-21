@@ -354,7 +354,7 @@ func (di *DataStore) SqlImport(r *bufio.Reader) error {
 	}
 
 	for {
-		// read a chunk
+		// Read string / line.
 		str, err := r.ReadString(10)
 		bytesRead = bytesRead + int64(len(str))
 
