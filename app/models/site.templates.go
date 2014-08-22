@@ -32,6 +32,7 @@ type HttpServerTemplate struct {
 	DomainInfo    *Domain
 	DomainAliases []*Domain
 	ConfigRoot    string `gcfg:"config-root"`
+	ServerId      int64
 }
 
 type SSLServerTemplate struct {
