@@ -6,8 +6,8 @@
 # http://code.google.com/p/sequel-pro/
 #
 # Host: 127.0.0.1 (MySQL 5.6.19)
-# Database: hostmaster
-# Generation Time: 2014-08-21 07:45:36 +0000
+# Database: hostmaster_test
+# Generation Time: 2014-08-22 09:35:48 +0000
 # ************************************************************
 
 
@@ -27,24 +27,27 @@ DROP TABLE IF EXISTS `domain`;
 
 CREATE TABLE `domain` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `server_config` int(11) unsigned NOT NULL,
+  `site_id` int(11) unsigned NOT NULL,
+  `server_config_id` int(11) unsigned NOT NULL,
   `type` varchar(128) NOT NULL,
   `name` varchar(768) NOT NULL DEFAULT '',
   `host` varchar(255) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
   KEY `host` (`host`),
-  KEY `server_config_rel` (`server_config`),
-  CONSTRAINT `server_config_rel` FOREIGN KEY (`server_config`) REFERENCES `server_config` (`id`)
+  KEY `domain_site_rel` (`site_id`),
+  KEY `domain_server_rel` (`server_config_id`),
+  CONSTRAINT `domain_server_rel` FOREIGN KEY (`server_config_id`) REFERENCES `server_config` (`id`),
+  CONSTRAINT `domain_site_rel` FOREIGN KEY (`site_id`) REFERENCES `site` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 
-# Dump of table installation
+# Dump of table platform
 # ------------------------------------------------------------
 
-DROP TABLE IF EXISTS `installation`;
+DROP TABLE IF EXISTS `platform`;
 
-CREATE TABLE `installation` (
+CREATE TABLE `platform` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL DEFAULT '',
   `root_folder` varchar(2048) NOT NULL DEFAULT '',
@@ -60,6 +63,7 @@ DROP TABLE IF EXISTS `server_config`;
 
 CREATE TABLE `server_config` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `site_id` int(11) unsigned NOT NULL,
   `server_type` varchar(255) NOT NULL DEFAULT '',
   `template` varchar(2048) NOT NULL DEFAULT '',
   `port` int(11) NOT NULL,
@@ -68,7 +72,9 @@ CREATE TABLE `server_config` (
   `secured` tinyint(1) NOT NULL,
   `cert` varchar(2048) DEFAULT NULL,
   `cert_key` varchar(2048) DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `site_rel` (`site_id`),
+  CONSTRAINT `site_rel` FOREIGN KEY (`site_id`) REFERENCES `site` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
@@ -80,16 +86,16 @@ DROP TABLE IF EXISTS `site`;
 
 CREATE TABLE `site` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `installation_id` int(11) unsigned NOT NULL,
+  `platform_id` int(11) unsigned NOT NULL,
   `name` varchar(255) DEFAULT '',
-  `database` varchar(128) NOT NULL,
+  `db_name` varchar(128) NOT NULL DEFAULT '',
   `db_user` varchar(128) NOT NULL DEFAULT '',
   `sub_directory` varchar(1024) NOT NULL DEFAULT '',
   `install_type` varchar(255) DEFAULT '',
   `template` varchar(2048) DEFAULT '',
   PRIMARY KEY (`id`),
-  KEY `installation_id` (`installation_id`),
-  CONSTRAINT `installation_id` FOREIGN KEY (`installation_id`) REFERENCES `installation` (`id`)
+  KEY `installation_id` (`platform_id`),
+  CONSTRAINT `platform_id` FOREIGN KEY (`platform_id`) REFERENCES `platform` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
