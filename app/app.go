@@ -53,6 +53,10 @@ func Init(config []byte) *Application {
 		log.Fatalln("Backup directory doesn't exist. Please correct it before continuing.")
 	}
 
+	if !utils.FileExists(a.Base.Config.Platform.Directory) {
+		log.Fatalln("Platform directory doesn't exist. Please correct it before continuing.")
+	}
+
 	return &a
 }
 
@@ -61,7 +65,7 @@ func (a *Application) RegisterControllers() {
 	a.Controllers.Drush.Init()
 	a.Controllers.Site = &controllers.Site{Drush: a.Controllers.Drush, Base: a.Base}
 	a.Controllers.SiteTemplate = &controllers.SiteTemplate{Base: a.Base}
-	a.Controllers.System = &controllers.System{Base: a.Base}
+	a.Controllers.System = &controllers.System{a.Controllers.Site}
 	a.Controllers.HostMasterDB = &controllers.HostMasterDB{Base: a.Base}
 }
 

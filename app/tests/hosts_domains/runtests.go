@@ -7,8 +7,11 @@ import (
 type HostsDomains struct {
 }
 
-func RunTests(t *testing.T) {
-	hd := HostsDomains{}
+func Init() *HostsDomains {
+	return &HostsDomains{}
+}
+
+func (hd *HostsDomains) RunTests(t *testing.T) {
 	hd.TestHostsDomainsToString(t)
 	hd.TestHostsDomainsParse(t)
 	hd.TestHostsDomainsFromFile(t)

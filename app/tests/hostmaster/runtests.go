@@ -6,32 +6,25 @@ import (
 	"testing"
 )
 
-func getApplication() *app.Application {
-	application := app.Init([]byte(ApplicationConfig1))
-	return application
-}
-
-func RunTests(t *testing.T) {
-	// Application initialize.
-	app := getApplication()
-	app.RegisterControllers()
-	defer app.Base.DataStore.DB.Close()
-
-	appTests := ApplicationTests{app}
-	// Test reads config.
-	appTests.TestReadsConfig(t)
-	// Test creates database.
-	appTests.TestCreatesDatabase(t)
-	// Test platform exists.
-	appTests.TestPlatformExists(t)
-	// Test site creation.
-	appTests.TestCreateSite(t)
-	// Test site creation, database server configs and domains.
-	appTests.TestCreateConfigsAndDomains(t)
-}
-
 type ApplicationTests struct {
 	Application *app.Application
+}
+
+func Init(a *app.Application) *ApplicationTests {
+	return &ApplicationTests{Application: a}
+}
+
+func (a *ApplicationTests) RunTests(t *testing.T) {
+	// Test reads config.
+	a.TestReadsConfig(t)
+	// Test creates database.
+	a.TestCreatesDatabase(t)
+	// Test platform exists.
+	a.TestPlatformExists(t)
+	// Test site creation.
+	a.TestCreateSite(t)
+	// Test site creation, database server configs and domains.
+	a.TestCreateConfigsAndDomains(t)
 }
 
 func (a *ApplicationTests) RandomizeDatabaseValues(tmpl *models.InstallTemplate) {

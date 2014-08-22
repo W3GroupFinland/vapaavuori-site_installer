@@ -1,4 +1,4 @@
-package hostmaster
+package tests
 
 const (
 	ApplicationConfig1 = `# Settings for application database.
@@ -19,7 +19,7 @@ restart = apachectl restart
 
 # Platform install root
 [platform]
-directory = /Users/tuomas/Sites/www/site-installer
+directory = /tmp
 
 # Backup directory
 [backup]
