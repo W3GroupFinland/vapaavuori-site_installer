@@ -16,11 +16,16 @@ restart = apachectl restart
 
 # Platform install root
 [platform]
-directory = /Users/tuomasvapaavuori/Sites/test_auto/platforms
+directory = /Users/tuomas/Sites/www/multi-test
 
 # Backup directory
 [backup]
 directory = /tmp
+
+# Settings for application web host
+[host]
+name = localhost
+port = 8888
 
 # Hosts file directory
 [hosts]

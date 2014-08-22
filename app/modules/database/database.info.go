@@ -101,7 +101,7 @@ func (di *DatabaseInfo) SetDBName(dbName *models.RandomValue) *DatabaseInfo {
 
 func (di *DatabaseInfo) CreateUser() error {
 	// Create User on hosts.
-	u := models.User{Username: di.User.Value, Password: di.Password.Value}
+	u := User{Username: di.User.Value, Password: di.Password.Value}
 	err := di.DataStore.CreateUserOnHosts(&u, di.Hosts)
 	if err != nil {
 		log.Println(err)

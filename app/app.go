@@ -1,11 +1,13 @@
 package app
 
 import (
+	"flag"
+	"fmt"
 	"github.com/tuomasvapaavuori/site_installer/app/controllers"
-	"github.com/tuomasvapaavuori/site_installer/app/models"
 	a "github.com/tuomasvapaavuori/site_installer/app/modules/app_base"
 	"github.com/tuomasvapaavuori/site_installer/app/modules/utils"
 	"log"
+	"net/http"
 )
 
 type Application struct {
@@ -23,6 +25,7 @@ type Application struct {
 func Init(config []byte) *Application {
 	// Create new application struct with application base.
 	a := Application{Base: a.NewAppBase()}
+
 	// Read application configuration from file.
 	a.Base.Config.Read(config)
 	// Open database connection.
@@ -75,60 +78,32 @@ func (a *Application) RegisterControllers() {
 
 func (a *Application) Run() {
 	defer a.Base.DataStore.DB.Close()
+
+	// Read web templates.
+	err := a.Base.Templates.CustomDelims().ReadDir("web/templates")
+	if err != nil {
+		log.Println(err)
+	}
+
+	// Command line flags
+	port := flag.Int("port", a.Base.Config.Host.Port, "port to serve on")
+	dir := flag.String("directory", "web/files", "directory of web files")
+	flag.Parse()
+
 	// Register controllers.
 	a.RegisterControllers()
+	a.RegisterWebControllers()
+	a.RegisterRoutes()
+	a.RegisterFileServer(dir)
 
 	a.Controllers.Drush.Which()
 	a.ParseCommandLineArgs()
 
-	templFile, err := a.GetCommandArg("--template")
-	if err != nil {
-		log.Println(err)
-		return
-	}
+	a.Base.AppKeys.SetSecret("client.secret", "something-wery-secret")
+	a.Base.InitSessions("something-wery-secret")
 
-	tmpl, err := a.Controllers.SiteTemplate.ReadTemplate(templFile)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
-	tmpl.InstallInfo.DomainInfo = &models.Domain{Host: "127.0.0.1", DomainName: "local.tivia-drupal1.fi"}
-	tmpl.HttpServer.DomainInfo = &models.Domain{Host: "127.0.0.1", DomainName: "local.tivia-drupal1.fi"}
-	tmpl.SSLServer.DomainInfo = &models.Domain{Host: "127.0.0.1", DomainName: "local.ssl-tivia-drupal1.fi"}
-
-	// Initialize rollback functionality.
-	tmpl.RollBack = models.NewSiteRollBack(tmpl)
-
-	_, err = a.Controllers.Site.Create(tmpl)
-	if err != nil {
-		log.Println(err)
-		tmpl.RollBack.Execute()
-		return
-	}
-
-	err = a.Controllers.SiteTemplate.WriteApacheConfig(tmpl)
-	if err != nil {
-		log.Println(err)
-		tmpl.RollBack.Execute()
-		return
-	}
-
-	domains := a.Controllers.Site.GetSiteTemplateDomains(tmpl)
-	err = a.Controllers.Site.AddToHosts(tmpl, domains)
-	if err != nil {
-		log.Println(err)
-		tmpl.RollBack.Execute()
-		return
-	}
-
-	a.Controllers.Site.CreateDomainSymlinks(tmpl, domains)
-
-	err = a.Controllers.System.HttpServerRestart()
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
-	tmpl.RollBack.DeleteBackupFiles()
+	log.Printf("Running on port %d\n", *port)
+	addr := fmt.Sprintf("%v:%d", a.Base.Config.Host.Name, *port)
+	err = http.ListenAndServe(addr, nil)
+	fmt.Println(err.Error())
 }

@@ -23,7 +23,7 @@ type Mysql struct {
 
 type Host struct {
 	Name string
-	Port string
+	Port int
 }
 
 type Drush struct {
