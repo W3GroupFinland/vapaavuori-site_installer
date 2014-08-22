@@ -9,7 +9,7 @@ import (
 
 func (c *HostMasterDB) CreateSiteDomains(tmpl *models.InstallTemplate, domains *models.SiteDomains) error {
 	if tmpl.InstallInfo.SiteId == 0 {
-		return errors.New("Platform id can't be zero.")
+		return errors.New("Site id can't be zero.")
 	}
 
 	for _, domain := range domains.Domains {
@@ -31,9 +31,14 @@ func (c *HostMasterDB) CreateSiteDomains(tmpl *models.InstallTemplate, domains *
 
 func (c *HostMasterDB) CreateSiteDomain(tmpl *models.InstallTemplate, domain *models.Domain) (int64, error) {
 	var id int64
-	q := "INSERT INTO domain (site_id, type, name, host) VALUES(?,?,?,?)"
+	if domain.SiteId == 0 || domain.ServerConfigId == 0 {
+		return id, errors.New("Site id or server config id is zero.")
+	}
+
+	q := "INSERT INTO domain (site_id, server_config_id, type, name, host) VALUES(?,?,?,?,?)"
 	res, err := c.Base.DataStore.DB.Exec(q,
-		tmpl.InstallInfo.SiteId,
+		domain.SiteId,
+		domain.ServerConfigId,
 		domain.Type,
 		domain.DomainName,
 		domain.Host)
@@ -42,9 +47,14 @@ func (c *HostMasterDB) CreateSiteDomain(tmpl *models.InstallTemplate, domain *mo
 		return id, err
 	}
 
+	id, err = res.LastInsertId()
+	if err != nil {
+		return id, err
+	}
+
 	tmpl.RollBack.AddDBIdFunction(c.RemoveSiteDomainWithId, id)
 
-	return res.LastInsertId()
+	return id, nil
 }
 
 func (c *HostMasterDB) RemoveSiteDomainWithId(id int64) error {

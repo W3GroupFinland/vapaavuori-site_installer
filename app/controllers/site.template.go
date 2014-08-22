@@ -49,6 +49,8 @@ func (c *SiteTemplate) WriteApacheConfig(tmpl *models.InstallTemplate) error {
 		if err != nil {
 			return err
 		}
+
+		tmpl.HttpServer.ConfigFile = outFile
 	}
 	if tmpl.SSLServer.Template != "" {
 		// Write SSL apache config.
@@ -72,6 +74,8 @@ func (c *SiteTemplate) WriteApacheConfig(tmpl *models.InstallTemplate) error {
 		if err != nil {
 			return err
 		}
+
+		tmpl.SSLServer.ConfigFile = outFile
 	}
 
 	return nil
