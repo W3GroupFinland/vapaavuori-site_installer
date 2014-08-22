@@ -72,7 +72,7 @@ func (c *HostMasterDB) CreateServerConfig(tmpl *models.InstallTemplate, cs *mode
 
 	var id int64
 
-	q := "INSERT INTO site (site_id, server_type, template, port, config_root, config_file, secured, cert, cert_key) "
+	q := "INSERT INTO server_config (site_id, server_type, template, port, config_root, config_file, secured, cert, cert_key) "
 	q += "VALUES(?,?,?,?,?,?,?,?,?)"
 
 	res, err := c.Base.DataStore.DB.Exec(q,

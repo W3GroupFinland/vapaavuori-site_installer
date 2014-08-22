@@ -40,6 +40,12 @@ type HttpServerTemplate struct {
 	ServerConfigId int64
 }
 
+type SSLServerTemplate struct {
+	HttpServerTemplate
+	Certificate string
+	Key         string
+}
+
 // Helper function to update domain objects.
 // Without site id and server id domain can't be created to database.
 func (s *HttpServerTemplate) UpdateDomainIds(siteId int64) error {
@@ -54,12 +60,6 @@ func (s *HttpServerTemplate) UpdateDomainIds(siteId int64) error {
 	}
 
 	return nil
-}
-
-type SSLServerTemplate struct {
-	HttpServerTemplate
-	Certificate string
-	Key         string
 }
 
 func (it *InstallTemplate) GetSiteInstallInfo() *SiteInstallInfo {

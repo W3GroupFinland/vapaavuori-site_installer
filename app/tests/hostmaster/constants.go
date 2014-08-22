@@ -1,4 +1,4 @@
-package tests
+package hostmaster
 
 const (
 	ApplicationConfig1 = `# Settings for application database.

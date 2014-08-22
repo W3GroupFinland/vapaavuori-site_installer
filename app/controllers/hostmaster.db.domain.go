@@ -3,6 +3,7 @@ package controllers
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"github.com/tuomasvapaavuori/site_installer/app/models"
 	"log"
 )
@@ -18,7 +19,8 @@ func (c *HostMasterDB) CreateSiteDomains(tmpl *models.InstallTemplate, domains *
 			return err
 		}
 		if exists {
-			continue
+			msg := fmt.Sprintf("%v on host %v exists already in database.", domain.DomainName, domain.Host)
+			return errors.New(msg)
 		}
 		_, err = c.CreateSiteDomain(tmpl, domain)
 		if err != nil {

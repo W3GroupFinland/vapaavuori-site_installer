@@ -9,6 +9,7 @@ import (
 
 func (c *HostMasterDB) CreateSite(tmpl *models.InstallTemplate) (int64, error) {
 	var id int64
+	// Checking if platform exists. If not return error.
 	exists, err := c.PlatformIdExists(tmpl.InstallInfo.PlatformId)
 	if err != nil {
 		return id, err
@@ -18,6 +19,17 @@ func (c *HostMasterDB) CreateSite(tmpl *models.InstallTemplate) (int64, error) {
 		return id, errors.New("Platform doesn't exist.")
 	}
 
+	// Check if site exists on given platform.
+	exists, err = c.SiteExists(tmpl.InstallInfo.PlatformId, tmpl.InstallInfo.SubDirectory)
+	if err != nil {
+		return id, err
+	}
+
+	if exists {
+		return id, errors.New("Given site exists already on given platform.")
+	}
+
+	// Insert query.
 	q := "INSERT INTO site (platform_id,name,db_name,db_user,sub_directory,install_type,template) "
 	q += "VALUES(?,?,?,?,?,?,?)"
 
