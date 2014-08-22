@@ -10,7 +10,7 @@ import (
 func (c *HostMasterDB) CreatePlatform(tmpl *models.InstallTemplate) (int64, error) {
 	var id int64
 
-	exists, err := c.PlatformExists(tmpl.InstallInfo.PlatformName, tmpl.InstallInfo.DrupalRoot)
+	exists, _, err := c.PlatformExists(tmpl.InstallInfo.PlatformName, tmpl.InstallInfo.DrupalRoot)
 	if err != nil {
 		return id, err
 	}
@@ -77,7 +77,7 @@ func (c *HostMasterDB) PlatformIdExists(id int64) (bool, error) {
 	return true, nil
 }
 
-func (c *HostMasterDB) PlatformExists(name string, rootFolder string) (bool, error) {
+func (c *HostMasterDB) PlatformExists(name string, rootFolder string) (bool, int64, error) {
 	q := "SELECT id FROM platform p WHERE p.name = ? AND p.root_folder = ?"
 	row := c.Base.DataStore.DB.QueryRow(q, name, rootFolder)
 
@@ -86,12 +86,12 @@ func (c *HostMasterDB) PlatformExists(name string, rootFolder string) (bool, err
 
 	if err != nil && err != sql.ErrNoRows {
 		log.Println(err)
-		return false, err
+		return false, id, err
 	}
 
-	if id != 0 {
-		return true, nil
+	if err == sql.ErrNoRows {
+		return false, id, nil
 	}
 
-	return false, nil
+	return true, id, nil
 }

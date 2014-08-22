@@ -5,7 +5,7 @@ import (
 )
 
 func (s *SystemTests) TestGetPlatforms(t *testing.T) {
-	err := s.Application.Controllers.System.GetDrupalPlatforms()
+	_, err := s.Application.Controllers.System.GetDrupalPlatforms()
 	if err != nil {
 		t.Error(err)
 	}

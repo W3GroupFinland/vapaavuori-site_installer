@@ -1,9 +1,9 @@
 package app
 
 import (
-	a "github.com/tuomasvapaavuori/site_installer/app/app_base"
 	"github.com/tuomasvapaavuori/site_installer/app/controllers"
 	"github.com/tuomasvapaavuori/site_installer/app/models"
+	a "github.com/tuomasvapaavuori/site_installer/app/modules/app_base"
 	"github.com/tuomasvapaavuori/site_installer/app/modules/utils"
 	"log"
 )
@@ -65,8 +65,12 @@ func (a *Application) RegisterControllers() {
 	a.Controllers.Drush.Init()
 	a.Controllers.Site = &controllers.Site{Drush: a.Controllers.Drush, Base: a.Base}
 	a.Controllers.SiteTemplate = &controllers.SiteTemplate{Base: a.Base}
-	a.Controllers.System = &controllers.System{a.Controllers.Site}
 	a.Controllers.HostMasterDB = &controllers.HostMasterDB{Base: a.Base}
+
+	a.Controllers.System = &controllers.System{
+		HostMaster: a.Controllers.HostMasterDB,
+		Site:       a.Controllers.Site,
+	}
 }
 
 func (a *Application) Run() {

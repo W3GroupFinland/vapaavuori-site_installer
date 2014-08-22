@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"errors"
-	//a "github.com/tuomasvapaavuori/site_installer/app/app_base"
+	"github.com/tuomasvapaavuori/site_installer/app/models"
 	"io/ioutil"
 	"log"
 	"os/exec"
@@ -10,14 +10,15 @@ import (
 )
 
 type System struct {
-	*Site
+	Site       *Site
+	HostMaster *HostMasterDB
 }
 
 func (c *System) HttpServerRestart() error {
-	if c.Base.Commands.HttpServer.Restart.Command == "" {
+	if c.Site.Base.Commands.HttpServer.Restart.Command == "" {
 		return errors.New("No command set.")
 	}
-	cmd := c.Base.Commands.HttpServer.Restart
+	cmd := c.Site.Base.Commands.HttpServer.Restart
 	out, err := exec.Command(cmd.Command, cmd.Arguments...).Output()
 	if err != nil {
 		log.Println(err)
@@ -29,31 +30,51 @@ func (c *System) HttpServerRestart() error {
 	return nil
 }
 
-func (c *System) GetDrupalPlatforms() error {
-	pd := c.Base.Config.Platform.Directory
+func (c *System) GetDrupalPlatforms() ([]*models.PlatformInfo, error) {
+	var platforms []*models.PlatformInfo
+
+	pd := c.Site.Base.Config.Platform.Directory
 	if pd == "" {
-		return errors.New("Platform directory has to be set to get platform listing.")
+		return platforms, errors.New("Platform directory has to be set to get platform listing.")
 	}
 
 	files, err := ioutil.ReadDir(pd)
 	if err != nil {
-		return err
+		return platforms, err
 	}
 
 	for _, file := range files {
 		if file.IsDir() {
 			path := filepath.Join(pd, file.Name())
 
-			exists, info, err := c.InstallRootStatus(path)
+			exists, info, err := c.Site.InstallRootStatus(path)
 			if err != nil {
-				return err
+				return platforms, err
+			}
+
+			if !exists {
+				continue
+			}
+
+			platform := models.PlatformInfo{
+				RootInfo: info,
+				Name:     file.Name(),
+			}
+
+			// Check if platform is already registered.
+			exists, id, err := c.HostMaster.PlatformExists(file.Name(), pd)
+			if err != nil {
+				return platforms, err
 			}
 
 			if exists {
-				log.Println(info)
+				platform.Registered = true
+				platform.PlatformId = id
 			}
+
+			platforms = append(platforms, &platform)
 		}
 	}
 
-	return nil
+	return platforms, nil
 }
