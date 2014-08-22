@@ -135,10 +135,10 @@ func (d *Drush) FormatDatabaseStr(db *database.DatabaseInfo) string {
 		db.DbName.Value)
 }
 
-func (d *Drush) FormatSiteNameStr(ic *models.SiteInstallConfig) string {
+func (d *Drush) FormatSiteNameStr(ic *models.SiteInstallInfo) string {
 	return fmt.Sprintf(d.ArgumentStringFormat(DrushSiteNameArg), ic.SiteName)
 }
 
-func (d *Drush) FormatSiteSubDirStr(ic *models.SiteInstallConfig) string {
+func (d *Drush) FormatSiteSubDirStr(ic *models.SiteInstallInfo) string {
 	return fmt.Sprintf(d.ArgumentStringFormat(DrushSiteSubDirArg), ic.SubDirectory)
 }

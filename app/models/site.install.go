@@ -1,6 +1,6 @@
 package models
 
-type SiteInstallConfig struct {
+type SiteInstallInfo struct {
 	DrupalRoot       string `gcfg:"drupal-root"`
 	InstallType      string `gcfg:"install-type"`
 	TemplatePath     string `gcfg:"template-path"`
@@ -11,10 +11,13 @@ type SiteInstallConfig struct {
 	HttpUser         string `gcfg:"http-user"`
 	HttpGroup        string `gcfg:"http-group"`
 	ServerConfigRoot string `gcfg:"server-config-root"`
+	PlatformId       int64
+	PlatformName     string
+	SiteId           int64
 }
 
-func NewSiteInstallConfig() *SiteInstallConfig {
-	return &SiteInstallConfig{}
+func NewSiteInstallConfig() *SiteInstallInfo {
+	return &SiteInstallInfo{}
 }
 
 type SiteRootInfo struct {

@@ -16,14 +16,15 @@ type Application struct {
 		Site         *controllers.Site
 		SiteTemplate *controllers.SiteTemplate
 		System       *controllers.System
+		HostMasterDB *controllers.HostMasterDB
 	}
 }
 
-func Init() *Application {
+func Init(config []byte) *Application {
 	// Create new application struct with application base.
 	a := Application{Base: a.NewAppBase()}
 	// Read application configuration from file.
-	a.Base.Config.Read("config/config.gcfg")
+	a.Base.Config.Read(config)
 	// Open database connection.
 	_, err := a.Base.DataStore.OpenConn(
 		a.Base.Config.Mysql.User,
@@ -61,6 +62,7 @@ func (a *Application) RegisterControllers() {
 	a.Controllers.Site = &controllers.Site{Drush: a.Controllers.Drush, Base: a.Base}
 	a.Controllers.SiteTemplate = &controllers.SiteTemplate{Base: a.Base}
 	a.Controllers.System = &controllers.System{Base: a.Base}
+	a.Controllers.HostMasterDB = &controllers.HostMasterDB{Base: a.Base}
 }
 
 func (a *Application) Run() {

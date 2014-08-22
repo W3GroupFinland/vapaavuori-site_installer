@@ -2,11 +2,13 @@ package utils
 
 import (
 	"bitbucket.org/kardianos/osext"
+	"bytes"
 	"code.google.com/p/gcfg"
 	"crypto/rand"
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 )
 
 func RandomString(length int) string {
@@ -20,10 +22,25 @@ func RandomString(length int) string {
 	return string(bytes)
 }
 
-func ReadConfigFile(file string, c interface{}) error {
+// Get file path in relation to application executable.
+func GetFileFullPath(file string) (string, error) {
+	// Check if first charachter of string is /.
+	// In that case given file path is absolute.
+	matched, err := regexp.MatchString(`^[/].{0,}$`, file)
+	if err != nil {
+		return "", err
+	}
+	if matched {
+		if _, err := os.Stat(file); os.IsNotExist(err) {
+			return "", err
+		}
+
+		return file, nil
+	}
+
 	folderPath, err := osext.ExecutableFolder()
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	path := filepath.Join(folderPath, file)
@@ -31,18 +48,43 @@ func ReadConfigFile(file string, c interface{}) error {
 	if err != nil {
 		dir, err := os.Getwd()
 		if err != nil {
-			return err
+			return "", err
 		}
 
 		absPath, err = GetAbsDirectory(dir)
 		if err != nil {
-			return err
+			return "", err
 		}
 
 		path = filepath.Join(absPath, file)
 	}
 
-	err = gcfg.ReadFileInto(c, path)
+	return path, nil
+}
+
+func ReadConfigData(data []byte, c interface{}) error {
+	r := bytes.NewReader(data)
+
+	err := gcfg.ReadInto(c, r)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ReadConfigFile(file string, c interface{}) error {
+	path, err := GetFileFullPath(file)
+	if err != nil {
+		return err
+	}
+
+	data, err := ReadFileContents(path)
+	if err != nil {
+		return err
+	}
+
+	err = gcfg.ReadInto(c, bytes.NewReader(data))
 	if err != nil {
 		return err
 	}

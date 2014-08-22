@@ -1,11 +1,14 @@
-# Settings for application database.
+package hostmaster
+
+const (
+	ApplicationConfig1 = `# Settings for application database.
 [mysql]
-user = hostmaster
-password = hostmaster
+user = hostmaster_test
+password = hostmaster_test
 protocol = tcp
 host = 127.0.0.1
 port = 3306
-dbname = hostmaster
+dbname = hostmaster_test
 
 # Settings for drush command
 [drush]
@@ -24,4 +27,5 @@ directory = /tmp
 
 # Hosts file directory
 [hosts]
-directory = /etc/hosts
+directory = /etc/hosts`
+)
