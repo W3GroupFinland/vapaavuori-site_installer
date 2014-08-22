@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	a "github.com/tuomasvapaavuori/site_installer/app/app_base"
+	a "github.com/tuomasvapaavuori/site_installer/app/modules/app_base"
 )
 
 type HostMasterDB struct {

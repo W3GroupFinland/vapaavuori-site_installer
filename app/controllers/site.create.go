@@ -3,9 +3,8 @@ package controllers
 import (
 	"bufio"
 	"errors"
-	"fmt"
-	a "github.com/tuomasvapaavuori/site_installer/app/app_base"
 	"github.com/tuomasvapaavuori/site_installer/app/models"
+	a "github.com/tuomasvapaavuori/site_installer/app/modules/app_base"
 	"github.com/tuomasvapaavuori/site_installer/app/modules/database"
 	"github.com/tuomasvapaavuori/site_installer/app/modules/utils"
 	"log"
@@ -23,10 +22,14 @@ func (s *Site) Create(templ *models.InstallTemplate) (*database.DatabaseInfo, er
 	info := &templ.InstallInfo
 	var err error
 
-	_, err = s.InstallRootStatus(info)
+	exists, _, err := s.InstallRootStatus(info.DrupalRoot)
 	if err != nil {
 		log.Println(err)
 		return &database.DatabaseInfo{}, err
+	}
+
+	if !exists {
+		return &database.DatabaseInfo{}, errors.New("No platform in given path.")
 	}
 
 	var db *database.DatabaseInfo
@@ -208,11 +211,11 @@ func (s *Site) CreateDomainSymlinks(templ *models.InstallTemplate, domains *mode
 	}
 }
 
-func (s *Site) InstallRootStatus(info *models.SiteInstallInfo) (*models.SiteRootInfo, error) {
-	out, err := s.Drush.Run("-r", info.DrupalRoot, "status")
+func (s *Site) InstallRootStatus(path string) (bool, *models.SiteRootInfo, error) {
+	out, err := s.Drush.Run("-r", path, "status")
 	if err != nil {
 		log.Println(err)
-		return &models.SiteRootInfo{}, err
+		return false, &models.SiteRootInfo{}, err
 	}
 
 	var rows []string
@@ -268,11 +271,9 @@ func (s *Site) InstallRootStatus(info *models.SiteInstallInfo) (*models.SiteRoot
 		rootInfo.DrupalRoot = val
 	}
 
-	if rootInfo.DrupalRoot != info.DrupalRoot && rootInfo.DrupalVersion == "" {
-		msg := fmt.Sprintf("No drupal installation found from path %v.\n", info.DrupalRoot)
-		log.Print(msg)
-		return &models.SiteRootInfo{}, errors.New(msg)
+	if rootInfo.DrupalRoot != path && rootInfo.DrupalVersion == "" {
+		return false, &models.SiteRootInfo{}, nil
 	}
 
-	return &rootInfo, nil
+	return true, &rootInfo, nil
 }

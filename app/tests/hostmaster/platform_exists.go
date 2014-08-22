@@ -12,7 +12,7 @@ func (a *ApplicationTests) TestPlatformExists(t *testing.T) {
 		installName = "testing"
 	)
 	// Database should be empty so no rows exists.
-	exists, err := a.Application.Controllers.HostMasterDB.PlatformExists(installName, installRoot)
+	exists, _, err := a.Application.Controllers.HostMasterDB.PlatformExists(installName, installRoot)
 	if err != nil && err != sql.ErrNoRows {
 		t.Fatal(err)
 	}
@@ -30,7 +30,7 @@ func (a *ApplicationTests) TestPlatformExists(t *testing.T) {
 	}
 
 	// Database should be empty so no rows exists.
-	exists, err = a.Application.Controllers.HostMasterDB.PlatformExists(tmpl.InstallInfo.PlatformName, tmpl.InstallInfo.DrupalRoot)
+	exists, _, err = a.Application.Controllers.HostMasterDB.PlatformExists(tmpl.InstallInfo.PlatformName, tmpl.InstallInfo.DrupalRoot)
 	if err != nil && err != sql.ErrNoRows {
 		t.Fatal(err)
 	}
@@ -45,7 +45,7 @@ func (a *ApplicationTests) TestPlatformExists(t *testing.T) {
 	}
 
 	// No install should exist.
-	exists, err = a.Application.Controllers.HostMasterDB.PlatformExists(tmpl.InstallInfo.PlatformName, tmpl.InstallInfo.DrupalRoot)
+	exists, _, err = a.Application.Controllers.HostMasterDB.PlatformExists(tmpl.InstallInfo.PlatformName, tmpl.InstallInfo.DrupalRoot)
 	if err != nil && err != sql.ErrNoRows {
 		t.Fatal(err)
 	}

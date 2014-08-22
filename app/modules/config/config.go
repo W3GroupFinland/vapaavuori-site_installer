@@ -48,8 +48,15 @@ type Platform struct {
 	Directory string
 }
 
+type HttpSsl struct {
+	HttpSsl     bool
+	CertFile    string
+	PrivateFile string
+}
+
 type Config struct {
 	Host       Host
+	Ssl        HttpSsl
 	Mysql      Mysql
 	Drush      Drush
 	HttpServer HttpServer `gcfg:"http-server"`
