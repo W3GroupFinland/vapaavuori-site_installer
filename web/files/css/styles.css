@@ -1,0 +1,13 @@
+/** Errors **/
+
+.error {
+	color: red;
+}
+
+.input-group {
+	width: 100%;
+}
+
+.form-group {
+	overflow: hidden;
+}

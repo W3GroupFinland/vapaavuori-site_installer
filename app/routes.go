@@ -10,30 +10,57 @@ func (a *Application) RegisterWebControllers() {
 	app := a.Base
 
 	user := &controllers.User{app}
+	// User controller
 	app.WebControllers.Set(&base.Controller{user})
+	// Login controller
 	app.WebControllers.Set(&base.Controller{&controllers.Login{user}})
+	// Application page controller
+	app.WebControllers.Set(&base.Controller{&controllers.ApplicationPage{user}})
+	// Hostmaster websocket controller
+	app.WebControllers.Set(&base.Controller{&controllers.HostmasterWS{
+		User:         user,
+		Base:         app,
+		System:       a.Controllers.System,
+		HostMasterDB: a.Controllers.HostMasterDB,
+	}})
 }
 
 func (a *Application) RegisterRoutes() {
 	app := a.Base
 
 	app.AddRoute(&base.Route{
-		Path: "/user/login",
+		Path: "/",
 		Handlers: []base.RouteHandler{
 			base.RouteHandler{
 				Method:  "GET",
-				Handler: app.WebControllers.Get("app.web.controllers.login").Handler("Page")},
+				Handler: app.WebControllers.Get("app.controllers.web.login").Handler("Page")},
 			base.RouteHandler{
 				Method:  "POST",
-				Handler: app.WebControllers.Get("app.web.controllers.login").Handler("LoginPostHandler")},
+				Handler: app.WebControllers.Get("app.controllers.web.login").Handler("LoginPostHandler")},
 		}})
 
 	app.AddRoute(&base.Route{
-		Path: "/user/logout",
+		Path: "/logout",
 		Handlers: []base.RouteHandler{
 			base.RouteHandler{
 				Method:  "GET",
-				Handler: app.WebControllers.Get("app.web.controllers.login").Handler("Logout")}}})
+				Handler: app.WebControllers.Get("app.controllers.web.login").Handler("Logout")}}})
+
+	app.AddRoute(&base.Route{
+		Path: "/app",
+		Handlers: []base.RouteHandler{
+			base.RouteHandler{
+				Method:  "GET",
+				Handler: app.WebControllers.Get("app.controllers.web.application.page").Handler("ApplicationPageHandler")}},
+		Acl: []base.HttpAclHandlerFunc{app.WebControllers.Get("app.controllers.web.user").AclHandler("LoggedInAcl")}})
+
+	app.AddRoute(&base.Route{
+		Path: "/app/ws",
+		Handlers: []base.RouteHandler{
+			base.RouteHandler{
+				Method:  "GET",
+				Handler: app.WebControllers.Get("app.controllers.web.hostmaster.ws").Handler("Messager")}},
+		Acl: []base.HttpAclHandlerFunc{app.WebControllers.Get("app.controllers.web.user").AclHandler("LoggedInAcl")}})
 
 	// Register application routes
 	app.RegisterRoutes()

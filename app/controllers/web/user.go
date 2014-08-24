@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"database/sql"
+	"errors"
 	"github.com/tuomasvapaavuori/site_installer/app/models"
 	a "github.com/tuomasvapaavuori/site_installer/app/modules/app_base"
 	"log"
@@ -16,7 +17,7 @@ func (c *User) Init() {
 }
 
 func (c *User) ControllerName() string {
-	return "app.web.controllers.user"
+	return "app.controllers.web.user"
 }
 
 func (c *User) LoggedInAcl(rw http.ResponseWriter, r *http.Request) bool {
@@ -79,8 +80,8 @@ func (c *User) Current(rw http.ResponseWriter, r *http.Request) (*models.User, b
 }
 
 func (c *User) Load(username string) (*models.User, error) {
-	q := "SELECT u.id, u.username, u.mail, u.password, u.status "
-	q += "WHERE username = ?"
+	q := "SELECT u.id, u.username, u.mail, u.password, u.status FROM user u "
+	q += "WHERE u.username = ?"
 	row := c.Base.DataStore.DB.QueryRow(q, username)
 
 	user := models.User{}
@@ -97,6 +98,84 @@ func (c *User) Load(username string) (*models.User, error) {
 	}
 
 	return &user, err
+}
+
+func (c *User) Create(username string, mail string, password string, status bool) (*models.User, error) {
+	exists, err := c.UsernameExists(username)
+	if err != nil {
+		return &models.User{}, err
+	}
+
+	if exists {
+		return &models.User{}, errors.New("Username exists already.")
+	}
+
+	exists, err = c.MailExists(mail)
+	if err != nil {
+		return &models.User{}, err
+	}
+
+	if exists {
+		return &models.User{}, errors.New("User mail exists already.")
+	}
+
+	q := "INSERT INTO user (username, mail, password, status) VALUES(?, ?, ?, ?)"
+	res, err := c.Base.DataStore.DB.Exec(q,
+		username,
+		mail,
+		password,
+		status,
+	)
+
+	if err != nil {
+		return &models.User{}, err
+	}
+
+	id, err := res.LastInsertId()
+	if err != nil {
+		return &models.User{}, err
+	}
+
+	return &models.User{Uid: id,
+		Username: username,
+		Password: password,
+		Status:   status}, err
+}
+
+func (c *User) UsernameExists(username string) (bool, error) {
+	q := "SELECT id FROM user u WHERE u.username = ?"
+
+	var id int64
+	row := c.Base.DataStore.DB.QueryRow(q, username)
+	err := row.Scan(&id)
+
+	if err != nil && err != sql.ErrNoRows {
+		return false, err
+	}
+
+	if err == sql.ErrNoRows {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+func (c *User) MailExists(mail string) (bool, error) {
+	q := "SELECT id FROM user u WHERE u.mail = ?"
+
+	var id int64
+	row := c.Base.DataStore.DB.QueryRow(q, mail)
+	err := row.Scan(&id)
+
+	if err != nil && err != sql.ErrNoRows {
+		return false, err
+	}
+
+	if err == sql.ErrNoRows {
+		return false, nil
+	}
+
+	return true, nil
 }
 
 func (c *User) LoadUserWithId(uid int64) (*models.User, error) {

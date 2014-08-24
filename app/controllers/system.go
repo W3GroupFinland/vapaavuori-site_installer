@@ -30,8 +30,8 @@ func (c *System) HttpServerRestart() error {
 	return nil
 }
 
-func (c *System) GetDrupalPlatforms() ([]*models.PlatformInfo, error) {
-	var platforms []*models.PlatformInfo
+func (c *System) GetDrupalPlatforms() (models.PlatformList, error) {
+	var platforms models.PlatformList
 
 	pd := c.Site.Base.Config.Platform.Directory
 	if pd == "" {
@@ -72,7 +72,11 @@ func (c *System) GetDrupalPlatforms() ([]*models.PlatformInfo, error) {
 				platform.PlatformId = id
 			}
 
-			platforms = append(platforms, &platform)
+			// Value is not given out for security reasons.
+			// Config platform directory is used instead when creating platforms.
+			platform.RootInfo.DrupalRoot = "-- Obfuscated --"
+
+			platforms.Add(pd, &platform)
 		}
 	}
 

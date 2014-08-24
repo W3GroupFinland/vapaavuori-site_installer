@@ -9,8 +9,7 @@ import (
 
 func (c *HostMasterDB) CreatePlatform(tmpl *models.InstallTemplate) (int64, error) {
 	var id int64
-
-	exists, _, err := c.PlatformExists(tmpl.InstallInfo.PlatformName, tmpl.InstallInfo.DrupalRoot)
+	exists, _, err := c.PlatformExists(tmpl.InstallInfo.PlatformName, c.Base.Config.Platform.Directory)
 	if err != nil {
 		return id, err
 	}
@@ -20,7 +19,7 @@ func (c *HostMasterDB) CreatePlatform(tmpl *models.InstallTemplate) (int64, erro
 	}
 
 	q := "INSERT INTO platform (name, root_folder) VALUES(?, ?)"
-	res, err := c.Base.DataStore.DB.Exec(q, tmpl.InstallInfo.PlatformName, tmpl.InstallInfo.DrupalRoot)
+	res, err := c.Base.DataStore.DB.Exec(q, tmpl.InstallInfo.PlatformName, c.Base.Config.Platform.Directory)
 	if err != nil {
 		return id, err
 	}
@@ -83,6 +82,8 @@ func (c *HostMasterDB) PlatformExists(name string, rootFolder string) (bool, int
 
 	var id int64
 	err := row.Scan(&id)
+
+	log.Printf("Name: %v, Root: %v, Id: %v", name, rootFolder, id)
 
 	if err != nil && err != sql.ErrNoRows {
 		log.Println(err)

@@ -7,6 +7,13 @@ import (
 )
 
 func (c *Login) Page(rw http.ResponseWriter, r *http.Request) {
+	_, valid := c.Current(rw, r)
+	// If user already logged in redirect to application page.
+	if valid {
+		http.Redirect(rw, r, "/files/webapp/app/#", http.StatusSeeOther)
+		return
+	}
+
 	err := c.Base.Templates.Templates.ExecuteTemplate(rw, "login.html", nil)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
@@ -36,6 +43,6 @@ func (c *Login) LoginPostHandler(rw http.ResponseWriter, r *http.Request) {
 	} else {
 		// Set user session.
 		c.Base.SetSessionKey("client-logged", user.Username, rw, r)
-		http.Redirect(rw, r, "/app/ws", http.StatusSeeOther)
+		http.Redirect(rw, r, "/files/webapp/app/#", http.StatusSeeOther)
 	}
 }

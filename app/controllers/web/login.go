@@ -11,7 +11,7 @@ type Login struct {
 func (c *Login) Init() {}
 
 func (c *Login) ControllerName() string {
-	return "app.web.controllers.login"
+	return "app.controllers.web.login"
 }
 
 func (c *Login) Login(rw http.ResponseWriter, r *http.Request) {
@@ -52,7 +52,7 @@ func (c *Login) Login(rw http.ResponseWriter, r *http.Request) {
 	http.Error(rw, c.Base.Http.Error(http.StatusAccepted), http.StatusAccepted)
 }
 
-// TODO: Implement
 func (c *Login) Logout(rw http.ResponseWriter, r *http.Request) {
-
+	c.Base.InvalidateSessionKey("client-logged", rw, r)
+	http.Redirect(rw, r, "/", http.StatusSeeOther)
 }
