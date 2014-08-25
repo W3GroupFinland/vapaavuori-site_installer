@@ -82,3 +82,61 @@ func (c *System) GetDrupalPlatforms() (models.PlatformList, error) {
 
 	return platforms, nil
 }
+
+func (c *System) GetSiteTemplates() ([]string, error) {
+	st := c.Site.Base.Config.SiteTemplates.Directory
+	var templateFiles []string
+
+	files, err := ioutil.ReadDir(st)
+	if err != nil {
+		return []string{}, err
+	}
+
+	for _, file := range files {
+		if file.IsDir() {
+			templateFiles = append(templateFiles, file.Name())
+		}
+	}
+
+	return templateFiles, nil
+}
+
+func (c *System) GetSiteServerTemplates() ([]string, error) {
+	st := c.Site.Base.Config.SiteServerTemplates.Directory
+	var serverTemplates []string
+
+	files, err := ioutil.ReadDir(st)
+	if err != nil {
+		return []string{}, err
+	}
+
+	for _, file := range files {
+		if file.IsDir() {
+			continue
+		}
+
+		serverTemplates = append(serverTemplates, file.Name())
+	}
+
+	return serverTemplates, nil
+}
+
+func (c *System) GetSiteServerCertificates() ([]string, error) {
+	st := c.Site.Base.Config.SiteServerTemplates.Certificates
+	var certificates []string
+
+	files, err := ioutil.ReadDir(st)
+	if err != nil {
+		return []string{}, err
+	}
+
+	for _, file := range files {
+		if file.IsDir() {
+			continue
+		}
+
+		certificates = append(certificates, file.Name())
+	}
+
+	return certificates, nil
+}

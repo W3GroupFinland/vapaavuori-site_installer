@@ -1,7 +1,7 @@
 # Settings for application database.
 [mysql]
 user = hostmaster
-password = hostmaster
+password = password
 protocol = tcp
 host = 127.0.0.1
 port = 3306
@@ -14,9 +14,19 @@ dbname = hostmaster
 [http-server]
 restart = apachectl restart
 
+[site-server-templates]
+directory = /Users/tuomasvapaavuori/go/src/github.com/tuomasvapaavuori/site_installer/templates/server/apache
+certificates = /Users/tuomasvapaavuori/go/src/github.com/tuomasvapaavuori/site_installer/templates/server/certs
+
+[site-templates]
+directory = /Users/tuomasvapaavuori/go/src/github.com/tuomasvapaavuori/site_installer/templates/site-templates
+
+[server-config-root]
+directory = /Users/tuomasvapaavuori/Sites/test_auto/config/apache
+
 # Platform install root
 [platform]
-directory = /Users/tuomas/Sites/www/multi-test
+directory = /Users/tuomasvapaavuori/Sites/tivia
 
 # Backup directory
 [backup]

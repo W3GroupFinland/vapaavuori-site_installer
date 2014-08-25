@@ -2,14 +2,22 @@ package web_models
 
 const (
 	// Requests
-	RequestGetPlatforms     = "GET_PLATFORMS"
-	RequestGetUser          = "GET_USER"
-	RequestRegisterPlatform = "REGISTER_PLATFORM"
+	RequestGetPlatforms          = "GET_PLATFORMS"
+	RequestGetUser               = "GET_USER"
+	RequestRegisterPlatform      = "REGISTER_PLATFORM"
+	RequestRegisterFullSite      = "REGISTER_FULL_SITE"
+	RequestGetSiteTemplates      = "GET_SITE_TEMPLATES"
+	RequestGetServerTemplates    = "GET_SERVER_TEMPLATES"
+	RequestGetServerCertificates = "GET_SERVER_CERTIFICATES"
 
 	// Responses
 	ResponsePlatforms          = "PLATFORMS"
 	ResponseUser               = "USER"
 	ResponsePlatformRegistered = "PLATFORM_REGISTERED"
+	ResponseStatusMessage      = "STATUS_MESSAGE"
+	ResponseSiteTemplates      = "SITE_TEMPLATES"
+	ResponseServerTemplates    = "SERVER_TEMPLATES"
+	ResponseServerCertificates = "SERVER_CERTIFICATES"
 )
 
 type WebSocketRequest struct {

@@ -15,6 +15,12 @@ angular.module('webappApp')
 		
 		// We return this object to anything injecting our service
 		var Service = {};
+
+		// Refresh platform data.
+		$rootScope.$on('STATUS_MESSAGE', function(_, args) {
+		      $rootScope.statusMessages.push(args.Message);
+		      $rootScope.$apply();
+		});		
 		
 		// Get method for platforms
 		Service.setMessage = function(msg) {

@@ -11,7 +11,7 @@
     <!-- endbower -->
     <!-- endbuild -->
     <!-- build:css(.tmp) styles/main.css -->
-    <link rel="stylesheet" href="http://localhost:8888/files/webapp/.tmp/styles/main.css">
+    <link rel="stylesheet" href="http://localhost:8888/files/webapp/styles/main.css">
     <!-- endbuild -->
   </head>
   <body ng-app="webappApp">
@@ -63,8 +63,6 @@
     <script src="http://localhost:8888/files/webapp/bower_components/json3/lib/json3.min.js"></script>
     <![endif]-->
 
-    <!-- build:js(.) scripts/vendor.js -->
-    <!-- bower:js -->
     <script src="http://localhost:8888/files/webapp/bower_components/jquery/dist/jquery.js"></script>
     <script src="http://localhost:8888/files/webapp/bower_components/es5-shim/es5-shim.js"></script>
     <script src="http://localhost:8888/files/webapp/bower_components/angular/angular.js"></script>
@@ -88,17 +86,15 @@
     <script src="http://localhost:8888/files/webapp/bower_components/angular-touch/angular-touch.js"></script>
     <script src="http://localhost:8888/files/webapp/bower_components/angular-route/angular-route.js"></script>
     <script src="http://localhost:8888/files/webapp/bower_components/angular-modal-service/dst/angular-modal-service.js"></script>
-    <!-- endbower -->
-    <!-- endbuild -->
 
         <!-- build:js({.tmp,app}) scripts/scripts.js -->
         <script src="scripts/app.js"></script>
         <script src="scripts/services/hostmasterservice.js"></script>
         <script src="scripts/services/status.messages.js"></script>
-        <script src="scripts/services/refresher.js"></script>
         <script src="scripts/controllers/header.js"></script>        
         <script src="scripts/controllers/main.js"></script>
         <script src="scripts/controllers/about.js"></script>
+        <script src="scripts/controllers/add.new.site.js"></script>
          <script src="scripts/controllers/register.platform.js"></script>
         <!-- endbuild -->
 </body>

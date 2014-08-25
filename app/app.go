@@ -60,6 +60,22 @@ func Init(config []byte) *Application {
 		log.Fatalln("Platform directory doesn't exist. Please correct it before continuing.")
 	}
 
+	if !utils.FileExists(a.Base.Config.SiteTemplates.Directory) {
+		log.Fatalln("Site template directory doesn't exist. Please correct it before continuing.")
+	}
+
+	if !utils.FileExists(a.Base.Config.SiteServerTemplates.Directory) {
+		log.Fatalln("Site server template directory doesn't exist. Please correct it before continuing.")
+	}
+
+	if !utils.FileExists(a.Base.Config.SiteServerTemplates.Certificates) {
+		log.Fatalln("Site server templates directory doesn't exist. Please correct it before continuing.")
+	}
+
+	if !utils.FileExists(a.Base.Config.ServerConfigRoot.Directory) {
+		log.Fatalln("Site server config root directory doesn't exist. Please correct it before continuing.")
+	}
+
 	return &a
 }
 

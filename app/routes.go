@@ -22,6 +22,8 @@ func (a *Application) RegisterWebControllers() {
 		Base:         app,
 		System:       a.Controllers.System,
 		HostMasterDB: a.Controllers.HostMasterDB,
+		Site:         a.Controllers.Site,
+		SiteTemplate: a.Controllers.SiteTemplate,
 	}})
 }
 

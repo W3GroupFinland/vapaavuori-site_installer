@@ -9,7 +9,7 @@
  */
 
 angular.module('webappApp')
-  .factory('HostmasterService', ['$q', '$rootScope', 'StatusService', 'RefreshService', function($q, $rootScope, StatusService, RefreshService) {
+  .factory('HostmasterService', ['$q', '$rootScope', 'StatusService', function($q, $rootScope, StatusService) {
 
     // We return this object to anything injecting our service
     var Service = {};
@@ -47,8 +47,12 @@ angular.module('webappApp')
     // On websocket message.
     ws.onmessage = function(message) {
         var data = angular.fromJson(message.data);
+        /*if (data.Type === "STATUS_MESSAGE") {
+          StatusService.setMessage('Hostmaster service connection closed.');
+        }*/
         if (data.Refresh) {
-          RefreshService.setData(data);
+          // TODO: Find some more elegant way to do this.
+          $rootScope.$broadcast(data.Type, data.Data);
           return;
         }
         listener(data);
@@ -144,6 +148,51 @@ angular.module('webappApp')
         Data: {
           Name: platform.Name,
         },
+      };
+
+      // Storing in a variable for clarity on what sendRequest returns
+      var promise = sendRequest(request); 
+      return promise;
+    };
+
+    // Get method for platforms
+    Service.registerFullSite = function(installTemplate) {
+      var request = {
+        Type: 'REGISTER_FULL_SITE',
+        Data: installTemplate,
+      };
+
+      // Storing in a variable for clarity on what sendRequest returns
+      var promise = sendRequest(request); 
+      return promise;
+    };    
+
+    // Get method for platforms
+    Service.getSiteTemplates = function() {
+      var request = {
+        Type: 'GET_SITE_TEMPLATES',
+      };
+
+      // Storing in a variable for clarity on what sendRequest returns
+      var promise = sendRequest(request); 
+      return promise;
+    };
+
+    // Get method for platforms
+    Service.getServerTemplates = function() {
+      var request = {
+        Type: 'GET_SERVER_TEMPLATES',
+      };
+
+      // Storing in a variable for clarity on what sendRequest returns
+      var promise = sendRequest(request); 
+      return promise;
+    };
+
+    // Get method for platforms
+    Service.getServerCertificates = function() {
+      var request = {
+        Type: 'GET_SERVER_CERTIFICATES',
       };
 
       // Storing in a variable for clarity on what sendRequest returns
