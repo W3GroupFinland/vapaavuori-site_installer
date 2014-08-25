@@ -17,6 +17,11 @@ type InstallTemplate struct {
 	RollBack            *SiteRollBack
 }
 
+// Initialize install rollback.
+func (it *InstallTemplate) Init() {
+	it.RollBack = NewSiteRollBack(it)
+}
+
 type MysqlGrantOption struct {
 	Value bool
 }

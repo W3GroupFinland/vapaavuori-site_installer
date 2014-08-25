@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/tuomasvapaavuori/site_installer/app/models"
 	"io"
 	"log"
 	"regexp"
@@ -15,6 +14,11 @@ import (
 
 type DataStore struct {
 	DB *sql.DB
+}
+
+type User struct {
+	Username string
+	Password string
 }
 
 func NewDataStore() *DataStore {
@@ -135,7 +139,7 @@ func (d *DataStore) RemoveDatabase(name string) error {
 	return nil
 }
 
-func (d *DataStore) CreateUserOnHosts(u *models.User, hosts []string) error {
+func (d *DataStore) CreateUserOnHosts(u *User, hosts []string) error {
 	tx, err := d.DB.Begin()
 	if err != nil {
 		log.Println(err)
@@ -165,7 +169,7 @@ func (d *DataStore) CreateUserOnHosts(u *models.User, hosts []string) error {
 	return nil
 }
 
-func (d *DataStore) CreateUser(tx *sql.Tx, u *models.User, host string) error {
+func (d *DataStore) CreateUser(tx *sql.Tx, u *User, host string) error {
 	q := fmt.Sprintf("CREATE USER '%v'@'%v' IDENTIFIED BY '%v'", u.Username, host, u.Password)
 
 	res, err := tx.Exec(q)
@@ -225,7 +229,7 @@ func (d *DataStore) RemoveUserOnHosts(userName string, hosts []string) error {
 }
 
 func (d *DataStore) GrantUserPrivilegesOnHosts(
-	u *models.User,
+	u *User,
 	dbName string,
 	hosts []string,
 	privileges []string,

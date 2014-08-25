@@ -1,0 +1,38 @@
+<html>
+	<head>
+		<title>Hostmaster login</title>
+		<script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+		<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+		<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.1.0/css/font-awesome.css">
+		<link rel="stylesheet" href="//localhost:8888/files/css/styles.css">
+		<script type="text/javascript" src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+	</head>
+	<body>
+		<div class="jumbotron">
+			<h1>Hostmaster</h1>
+		</div>
+		<div class="container">
+			<div class="row">
+			    <div class="col-xs-12" role="main">
+			        <div class="input-group">
+						<form role="form" accept-charset="UTF-8" action="/user/login" method="post">
+							<h3>Login</h3>
+							{{% with .Messages.Errors.General %}}
+							<p class="error">{{% . %}}</p>
+							{{% end %}}
+							<div class="form-group">
+								<label for="username">Username:</label>
+								<input class="form-control" type="text" name="username" placeholder="enter username">
+							</div>
+							<div class="form-group">
+								<label for="password">Password:</label>
+								<input class="form-control" type="password" name="password" placeholder="enter password">
+							</div>
+							<button type="submit" class="btn btn-default">Submit</button>
+						</form>
+			        </div><!-- /input-group -->
+			    </div><!-- /.col-lg-4 -->
+			</div><!-- /.row -->
+		</div><!-- /.container -->
+	</body>
+</html>

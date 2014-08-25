@@ -23,7 +23,7 @@ type Mysql struct {
 
 type Host struct {
 	Name string
-	Port string
+	Port int
 }
 
 type Drush struct {
@@ -54,15 +54,31 @@ type HttpSsl struct {
 	PrivateFile string
 }
 
+type SiteTemplates struct {
+	Directory string
+}
+
+type SiteServerTemplates struct {
+	Directory    string
+	Certificates string
+}
+
+type ServerConfigRoot struct {
+	Directory string
+}
+
 type Config struct {
-	Host       Host
-	Ssl        HttpSsl
-	Mysql      Mysql
-	Drush      Drush
-	HttpServer HttpServer `gcfg:"http-server"`
-	Backup     Backup
-	Hosts      Hosts
-	Platform   Platform
+	Host                Host
+	Ssl                 HttpSsl
+	Mysql               Mysql
+	Drush               Drush
+	HttpServer          HttpServer `gcfg:"http-server"`
+	Backup              Backup
+	Hosts               Hosts
+	Platform            Platform
+	SiteTemplates       SiteTemplates       `gcfg:"site-templates"`
+	SiteServerTemplates SiteServerTemplates `gcfg:"site-server-templates"`
+	ServerConfigRoot    ServerConfigRoot    `gcfg:"server-config-root"`
 }
 
 func NewConfig() *Config {
