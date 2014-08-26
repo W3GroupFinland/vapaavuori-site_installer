@@ -1,0 +1,42 @@
+# Settings for application database.
+[mysql]
+user = hostmaster
+password = hostmaster
+protocol = tcp
+host = 127.0.0.1
+port = 3306
+dbname = hostmaster
+
+# Settings for drush command
+[drush]
+
+# Settings for http server
+[http-server]
+restart = apachectl restart
+
+[site-server-templates]
+directory = 
+certificates = 
+
+[site-templates]
+directory = 
+
+[server-config-root]
+directory = 
+
+# Platform install root
+[platform]
+directory = 
+
+# Backup directory
+[backup]
+directory = /tmp
+
+# Settings for application web host
+[host]
+name = localhost
+port = 8888
+
+# Hosts file directory
+[hosts]
+directory = /etc/hosts
