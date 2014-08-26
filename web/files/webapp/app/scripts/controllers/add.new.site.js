@@ -88,7 +88,10 @@ angular.module('webappApp')
 			
 			$scope.master = angular.copy(site);
 			console.log('SITE', site);
-			HostmasterService.registerFullSite(site);
+
+			HostmasterService.registerFullSite(site).then(function (result) {
+				console.log('RESULT', result);
+			});
 		};
 
 		$scope.reset = function() {

@@ -18,6 +18,8 @@ const (
 	ResponseSiteTemplates      = "SITE_TEMPLATES"
 	ResponseServerTemplates    = "SERVER_TEMPLATES"
 	ResponseServerCertificates = "SERVER_CERTIFICATES"
+	ResponseSiteCreated        = "SITE_CREATED"
+	ResponseFormError          = "FORM_ERROR"
 )
 
 type WebSocketRequest struct {
