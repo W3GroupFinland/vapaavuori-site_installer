@@ -20,7 +20,7 @@ func (a *ApplicationTests) TestPlatformExists(t *testing.T) {
 		t.Errorf("Platform with name %v and install root %v should not exist.", installName, installRoot)
 	}
 
-	tmpl := models.InstallTemplate{InstallInfo: models.SiteInstallInfo{PlatformName: "bugsters", DrupalRoot: "/bugsters/gatan"}}
+	tmpl := models.InstallTemplate{InstallInfo: models.SiteInstallInfo{PlatformName: "bugsters", DrupalRoot: "/tmp"}}
 	// Initialize rollback functionality.
 	tmpl.RollBack = models.NewSiteRollBack(&tmpl)
 

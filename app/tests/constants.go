@@ -17,6 +17,16 @@ dbname = hostmaster_test
 [http-server]
 restart = apachectl restart
 
+[site-server-templates]
+directory = /tmp
+certificates = /tmp
+
+[site-templates]
+directory = /tmp
+
+[server-config-root]
+directory = /tmp
+
 # Platform install root
 [platform]
 directory = /tmp
