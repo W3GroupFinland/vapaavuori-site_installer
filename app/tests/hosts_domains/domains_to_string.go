@@ -7,9 +7,9 @@ import (
 
 func (h *HostsDomains) TestHostsDomainsToString(t *testing.T) {
 	const (
-		expectedHostStr1  = "127.0.0.1 local.luolamies.fi local.amputaatio.fi local.amputaatio2.fi"
+		expectedHostStr1  = "127.0.0.1 local.amputaatio.fi local.amputaatio2.fi local.luolamies.fi"
 		expectedHostName1 = "127.0.0.1"
-		expectedHostStr2  = "localhost local.test.fi local.test-app.fi"
+		expectedHostStr2  = "localhost local.test-app.fi local.test.fi"
 		expectedHostName2 = "localhost"
 	)
 

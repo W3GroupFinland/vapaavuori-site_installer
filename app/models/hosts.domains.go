@@ -3,6 +3,7 @@ package models
 import (
 	"errors"
 	"log"
+	"sort"
 	"strings"
 )
 
@@ -50,6 +51,8 @@ func (hd *HostDomains) Parse(str string) error {
 	hd.Host = parts[0]
 	// Rest of items are domains attached to host name.
 	parts = parts[1:]
+	// Sort strings in increasing order.
+	sort.Strings(parts)
 
 	for _, domainName := range parts {
 		hd.AddDomain(&Domain{
@@ -63,13 +66,17 @@ func (hd *HostDomains) Parse(str string) error {
 
 func (hd *HostDomains) String() string {
 	var items []string
-	// First item of slice is host name
-	items = append(items, hd.Host)
 
 	// Append domain names to end of slice.
 	for _, domain := range hd.Domains {
 		items = append(items, domain.DomainName)
 	}
+
+	// Sort strings in increasing order.
+	sort.Strings(items)
+
+	// First item of slice is host name
+	items = append([]string{hd.Host}, items...)
 
 	return strings.Join(items, " ")
 }

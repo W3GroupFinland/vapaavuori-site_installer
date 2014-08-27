@@ -12,9 +12,9 @@ import (
 
 func (h *HostsDomains) TestHostsDomainsFromFile(t *testing.T) {
 	const (
-		expectedHostStr1  = "127.0.0.1 local.hogus.fi local.bogus.fi local.bim.fi local.example.org local.example-site.org"
+		expectedHostStr1  = "127.0.0.1 local.bim.fi local.bogus.fi local.example-site.org local.example.org local.hogus.fi"
 		expectedHostName1 = "127.0.0.1"
-		expectedHostStr2  = "localhost local.exampleorg.fi local.exampleorg1.fi local.ensemble.org"
+		expectedHostStr2  = "localhost local.ensemble.org local.exampleorg.fi local.exampleorg1.fi"
 		expectedHostName2 = "localhost"
 	)
 
@@ -66,14 +66,14 @@ func (h *HostsDomains) TestHostsDomainsFromFile(t *testing.T) {
 	}
 
 	const (
-		extendedHostStr2 = expectedHostStr2 + " local.example.org"
+		extendedHostStr2 = expectedHostStr2 + " local.xanus.org"
 	)
 
 	mapAfter, err := site.ReadHostsFile(fp)
 	// This should already exist in hosts map.
 	mapAfter.AddDomain(&models.Domain{Host: expectedHostName1, DomainName: "local.example.org"})
 	// This is added to hosts map.
-	mapAfter.AddDomain(&models.Domain{Host: expectedHostName2, DomainName: "local.example.org"})
+	mapAfter.AddDomain(&models.Domain{Host: expectedHostName2, DomainName: "local.xanus.org"})
 
 	hostsDomains, err = mapAfter.GetHostDomains(expectedHostName1)
 	if hostsDomains.String() != expectedHostStr1 {
