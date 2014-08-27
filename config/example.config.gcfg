@@ -16,7 +16,7 @@ restart = apachectl restart
 
 [site-server-templates]
 directory = /var/www/site_installer/templates/server/vhosts
-certificates = /var/www/site_installer/templates/sites/certs
+certificates = /var/www/site_installer/templates/server/certs
 
 [site-templates]
 directory = /var/www/site_installer/templates/sites
