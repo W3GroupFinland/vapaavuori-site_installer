@@ -46,3 +46,17 @@ ln -s "$INSTALL_DIR/$PROGRAM_NAME" "/usr/bin/$PROGRAM_NAME"
 cp "../init/$DAEMON" "/etc/init.d/"
 # Start program on system startup.
 chkconfig "$DAEMON" "on" "--level" 345
+
+# Create server config directory to site installer.
+mkdir "-p" "/var/www/$PROGRAM_NAME/server_config/vhosts"
+
+# Create platforms directory to site installer.
+mkdir "-p" "/var/www/$PROGRAM_NAME/platforms"
+
+# Create template folder for sites.
+mkdir "-p" "/var/www/$PROGRAM_NAME/templates/sites"
+mkdir "-p" "/var/www/$PROGRAM_NAME/templates/server/vhost"
+mkdir "-p" "/var/www/$PROGRAM_NAME/templates/sites/certs"
+
+# Create temp folder for temporary files.
+mkdir "-p" "/var/www/$PROGRAM_NAME/tmp"

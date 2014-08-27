@@ -15,6 +15,9 @@ rm -Rf "$PIDDIR"
 echo "Removing directory $LOGDIR."
 rm -Rf "$LOGDIR"
 
+# Currently not removing platforms directories from /var/www/$PROGRAM_NAME
+# Maybe done with uninstall --hard, so platform settings are not lost.
+
 echo "Removing symbolic link /usr/bin/$PROGRAM_NAME."
 rm "/usr/bin/$PROGRAM_NAME"
 
