@@ -111,7 +111,7 @@ func (sb *SiteRollBack) Execute() {
 		}
 	}
 
-	for i := len(sb.FileFunctions) - 1; i >= 0; i-- {
+	for i := len(sb.FileRecovers) - 1; i >= 0; i-- {
 		v := sb.FileRecovers[i]
 		err := v.Function(v.FileBackup)
 		if err != nil {

@@ -22,6 +22,27 @@ func (it *InstallTemplate) Init() {
 	it.RollBack = NewSiteRollBack(it)
 }
 
+func NewInstallTemplate() *InstallTemplate {
+	tmpl := &InstallTemplate{
+		MysqlUser:           RandomValue{},
+		MysqlPassword:       RandomValue{},
+		MysqlUserHosts:      MysqlUserHosts{},
+		MysqlUserPrivileges: MysqlUserPrivileges{},
+		MysqlGrantOption:    MysqlGrantOption{},
+		DatabaseName:        RandomValue{},
+		InstallInfo:         SiteInstallInfo{},
+		HttpServer:          HttpServerTemplate{},
+		SSLServer:           SSLServerTemplate{},
+	}
+
+	tmpl.InstallInfo.DomainInfo = &Domain{}
+	tmpl.HttpServer.DomainInfo = &Domain{}
+	tmpl.SSLServer.DomainInfo = &Domain{}
+
+	tmpl.RollBack = NewSiteRollBack(tmpl)
+	return tmpl
+}
+
 type MysqlGrantOption struct {
 	Value bool
 }

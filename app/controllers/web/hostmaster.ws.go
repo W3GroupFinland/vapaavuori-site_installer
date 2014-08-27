@@ -3,7 +3,6 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/tuomasvapaavuori/site_installer/app/controllers"
 	"github.com/tuomasvapaavuori/site_installer/app/models"
@@ -11,7 +10,6 @@ import (
 	a "github.com/tuomasvapaavuori/site_installer/app/modules/app_base"
 	"log"
 	"net/http"
-	"path/filepath"
 	"reflect"
 )
 
@@ -117,8 +115,6 @@ func (c *HostmasterWS) WebSocketSendAll(i interface{}) {
 			log.Println(err)
 			continue
 		}
-
-		log.Println("SENDIGN IT TO ALL")
 	}
 }
 
@@ -184,195 +180,33 @@ func (c *HostmasterWS) RequestResolver(conn *websocket.Conn, req *web_models.Web
 	switch req.Type {
 	// Platform request.
 	case web_models.RequestGetPlatforms:
-		resp.SetCallback(req).SetData(web_models.ResponsePlatforms, c.Platforms.ToSliceList())
+		c.GetPlatforms(conn, req, resp)
 		break
 
 	// Register platform.
 	case web_models.RequestRegisterPlatform:
-		pi := &models.PlatformInputRequest{}
-		c.MapToStruct(pi, req.Data)
-
-		// Get platform info from prepopulated data.
-		platform, err := c.Platforms.Get(c.Base.Config.Platform.Directory, pi.Name)
-		if err != nil {
-			resp.SetError(http.StatusNotFound, err.Error())
-			return
-		}
-
-		// Create template of platform register data.
-		tmpl := models.InstallTemplate{
-			InstallInfo: models.SiteInstallInfo{
-				PlatformName: platform.Name,
-			}}
-
-		// Initialize rollback functionality.
-		tmpl.Init()
-		// Create platfrom according the template.
-		id, err := c.HostMasterDB.CreatePlatform(&tmpl)
-		if err != nil {
-			resp.SetError(http.StatusInternalServerError, err.Error())
-			tmpl.RollBack.Execute()
-			return
-		}
-
-		// Set new values to object.
-		platform.Registered = true
-		platform.PlatformId = id
-
-		// Set response data of successfull registration.
-		resp.SetCallback(req).SetData(web_models.ResponsePlatformRegistered, platform)
-		c.PlatformsUpdated()
-		msg := fmt.Sprintf("Platform %v was updated.", platform.Name)
-		c.StatusMessageToAll(msg)
+		c.RegisterPlatform(conn, req, resp)
 		break
 
 	case web_models.RequestRegisterFullSite:
-		data, err := json.Marshal(req.Data)
-		if err != nil {
-			resp.SetError(http.StatusInternalServerError, err.Error())
-			return
-		}
-		tmpl := models.InstallTemplate{}
-		err = json.Unmarshal(data, &tmpl)
-		if err != nil {
-			resp.SetError(http.StatusInternalServerError, err.Error())
-			return
-		}
-
-		exists, id, err := c.HostMasterDB.PlatformExists(tmpl.InstallInfo.PlatformName, c.Base.Config.Platform.Directory)
-		if err != nil {
-			log.Println(err)
-			resp.SetError(http.StatusInternalServerError, err.Error())
-			return
-		}
-
-		if !exists {
-			log.Println(err)
-			resp.SetError(http.StatusInternalServerError, "Platform doesn't exist.")
-			return
-		}
-
-		tmpl.InstallInfo.PlatformId = id
-		tmpl.InstallInfo.HttpUser = "_www"
-		tmpl.InstallInfo.HttpGroup = "_www"
-		tmpl.InstallInfo.DrupalRoot = filepath.Join(c.Base.Config.Platform.Directory, tmpl.InstallInfo.PlatformName)
-		tmpl.InstallInfo.TemplatePath = filepath.Join(c.Base.Config.SiteTemplates.Directory, tmpl.InstallInfo.TemplatePath)
-		tmpl.InstallInfo.InstallType = "template"
-		tmpl.HttpServer.ConfigRoot = c.Base.Config.ServerConfigRoot.Directory
-		tmpl.HttpServer.Template = filepath.Join(c.Base.Config.SiteServerTemplates.Directory, tmpl.HttpServer.Template)
-		tmpl.SSLServer.Certificate = filepath.Join(c.Base.Config.SiteServerTemplates.Certificates, tmpl.SSLServer.Certificate)
-		tmpl.SSLServer.ConfigRoot = c.Base.Config.ServerConfigRoot.Directory
-		tmpl.SSLServer.Key = filepath.Join(c.Base.Config.SiteServerTemplates.Certificates, tmpl.SSLServer.Key)
-		tmpl.SSLServer.Template = filepath.Join(c.Base.Config.SiteServerTemplates.Directory, tmpl.SSLServer.Template)
-		log.Println("THIS TEMPLATE:", tmpl.SSLServer.Template)
-		tmpl.Init()
-
-		// TODO: Make this nicer..
-		tmpl.MysqlUser = models.RandomValue{Random: true}
-		tmpl.MysqlPassword = models.RandomValue{Random: true}
-		tmpl.DatabaseName = models.RandomValue{Random: true}
-		tmpl.MysqlUserHosts = models.MysqlUserHosts{Hosts: []string{"127.0.0.1", "localhost"}}
-		tmpl.MysqlUserPrivileges = models.MysqlUserPrivileges{Privileges: []string{"ALL"}}
-		tmpl.MysqlGrantOption = models.MysqlGrantOption{Value: true}
-
-		_, err = c.Site.SiteTemplateInstallation(&tmpl)
-		if err != nil {
-			log.Println(err)
-			resp.SetError(http.StatusInternalServerError, err.Error())
-			tmpl.RollBack.Execute()
-			return
-		}
-
-		_, err = c.HostMasterDB.CreateSite(&tmpl)
-		if err != nil {
-			log.Println(err)
-			resp.SetError(http.StatusInternalServerError, err.Error())
-			tmpl.RollBack.Execute()
-			return
-		}
-
-		err = c.SiteTemplate.WriteApacheConfig(&tmpl)
-		if err != nil {
-			log.Println(err)
-			resp.SetError(http.StatusInternalServerError, err.Error())
-			tmpl.RollBack.Execute()
-			return
-		}
-
-		err = c.HostMasterDB.CreateServerConfigs(&tmpl)
-
-		if err != nil {
-			log.Println(err)
-			resp.SetError(http.StatusInternalServerError, err.Error())
-			tmpl.RollBack.Execute()
-			return
-		}
-
-		domains := c.Site.GetSiteTemplateDomains(&tmpl)
-		c.Site.CreateDomainSymlinks(&tmpl, domains)
-		// Create site domains.
-		err = c.HostMasterDB.CreateSiteDomains(&tmpl, domains)
-		if err != nil {
-			log.Println(err)
-			resp.SetError(http.StatusInternalServerError, err.Error())
-			tmpl.RollBack.Execute()
-			return
-		}
-
-		err = c.Site.AddToHosts(&tmpl, domains)
-		if err != nil {
-			log.Println(err)
-			resp.SetError(http.StatusInternalServerError, err.Error())
-			tmpl.RollBack.Execute()
-			return
-		}
-
-		err = c.System.HttpServerRestart()
-		if err != nil {
-			log.Println(err)
-			resp.SetError(http.StatusInternalServerError, err.Error())
-			tmpl.RollBack.Execute()
-			return
-		}
-
+		c.RegisterFullSite(conn, req, resp)
 		break
 
 	case web_models.RequestGetSiteTemplates:
-		items, err := c.System.GetSiteTemplates()
-		if err != nil {
-			resp.SetError(http.StatusInternalServerError, err.Error())
-			return
-		}
-		resp.SetCallback(req).SetData(web_models.ResponseSiteTemplates, items)
+		c.GetSiteTemplates(conn, req, resp)
 		break
 
 	case web_models.RequestGetServerTemplates:
-		items, err := c.System.GetSiteServerTemplates()
-		if err != nil {
-			resp.SetError(http.StatusInternalServerError, err.Error())
-			return
-		}
-		resp.SetCallback(req).SetData(web_models.ResponseServerTemplates, items)
+		c.GetServerTemplates(conn, req, resp)
 		break
 
 	case web_models.RequestGetServerCertificates:
-		items, err := c.System.GetSiteServerCertificates()
-		if err != nil {
-			resp.SetError(http.StatusInternalServerError, err.Error())
-			return
-		}
-		resp.SetCallback(req).SetData(web_models.ResponseServerCertificates, items)
+		c.GetServerCertificates(conn, req, resp)
 		break
 
 	// User info request.
 	case web_models.RequestGetUser:
-		user, err := c.GetUserFromConnection(conn)
-		if err != nil {
-			resp.SetError(http.StatusBadRequest, "No user connection.")
-			return
-		}
-		user.Password = "-- Obfuscated --"
-		resp.SetCallback(req).SetData(web_models.ResponseUser, user)
+		c.GetUser(conn, req, resp)
 		break
 	default:
 		resp.SetError(http.StatusBadRequest, "Bad request.")
@@ -419,4 +253,18 @@ func (c *HostmasterWS) MapToStruct(targetStruct interface{}, data interface{}) {
 			break
 		}
 	}
+}
+
+func (c *HostmasterWS) RequestDataToModel(req *web_models.WebSocketRequest, i interface{}) error {
+	data, err := json.Marshal(req.Data)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(data, i)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
