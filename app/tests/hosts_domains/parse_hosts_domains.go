@@ -7,10 +7,10 @@ import (
 
 func (h *HostsDomains) TestHostsDomainsParse(t *testing.T) {
 	const (
-		hostStr1         = "127.0.0.1 local.luolamies.fi local.amputaatio.fi local.amputaatio2.fi"
-		expectedHostStr1 = "127.0.0.1 local.luolamies.fi local.amputaatio.fi local.amputaatio2.fi local.ankkuri.fi"
+		hostStr1         = "127.0.0.1 local.amputaatio.fi local.amputaatio2.fi local.luolamies.fi"
+		expectedHostStr1 = "127.0.0.1 local.amputaatio.fi local.amputaatio2.fi local.ankkuri.fi local.luolamies.fi"
 		host1            = "127.0.0.1"
-		hostStr2         = "localhost local.test.fi local.test-app.fi"
+		hostStr2         = "localhost local.test-app.fi local.test.fi"
 		host2            = "localhost"
 		hostStr3         = "focalhost "
 	)
