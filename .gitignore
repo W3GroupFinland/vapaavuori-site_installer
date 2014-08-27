@@ -1,4 +1,5 @@
 config/*
+site_installer
 
 !.gitignore
 !config/example*
