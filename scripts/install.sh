@@ -55,7 +55,7 @@ mkdir "-p" "/var/www/$PROGRAM_NAME/platforms"
 
 # Create template folder for sites.
 mkdir "-p" "/var/www/$PROGRAM_NAME/templates/sites"
-mkdir "-p" "/var/www/$PROGRAM_NAME/templates/server/vhost"
+mkdir "-p" "/var/www/$PROGRAM_NAME/templates/server/vhost.d"
 mkdir "-p" "/var/www/$PROGRAM_NAME/templates/sites/certs"
 
 # Create temp folder for temporary files.
