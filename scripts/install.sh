@@ -45,4 +45,4 @@ ln -s "$INSTALL_DIR/$PROGRAM_NAME" "/usr/bin/$PROGRAM_NAME"
 # Copy init script to /etc/init.d
 cp "../init/$DAEMON" "/etc/init.d/"
 # Start program on system startup.
-chkconfig "$DAEMON" "on" "--level 345"
+chkconfig "$DAEMON" "on" "--level" 345
