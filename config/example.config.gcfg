@@ -15,22 +15,22 @@ dbname = hostmaster
 restart = apachectl restart
 
 [site-server-templates]
-directory = 
-certificates = 
+directory = /var/www/site_installer/templates/server/vhost
+certificates = /var/www/site_installer/templates/sites/certs
 
 [site-templates]
-directory = 
+directory = /var/www/site_installer/templates/sites
 
 [server-config-root]
-directory = 
+directory = /var/www/site_installer/server_config/vhosts
 
 # Platform install root
 [platform]
-directory = 
+directory = /var/www/site_installer/platforms
 
 # Backup directory
 [backup]
-directory = /tmp
+directory = /var/www/site_installer/tmp
 
 # Settings for application web host
 [host]
