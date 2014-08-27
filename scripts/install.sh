@@ -48,14 +48,14 @@ cp "../init/$DAEMON" "/etc/init.d/"
 chkconfig "$DAEMON" "on" "--level" 345
 
 # Create server config directory to site installer.
-mkdir "-p" "/var/www/$PROGRAM_NAME/server_config/vhosts"
+mkdir "-p" "/var/www/$PROGRAM_NAME/server_config/vhost.d"
 
 # Create platforms directory to site installer.
 mkdir "-p" "/var/www/$PROGRAM_NAME/platforms"
 
 # Create template folder for sites.
 mkdir "-p" "/var/www/$PROGRAM_NAME/templates/sites"
-mkdir "-p" "/var/www/$PROGRAM_NAME/templates/server/vhost.d"
+mkdir "-p" "/var/www/$PROGRAM_NAME/templates/server/vhosts"
 mkdir "-p" "/var/www/$PROGRAM_NAME/templates/sites/certs"
 
 # Create temp folder for temporary files.
