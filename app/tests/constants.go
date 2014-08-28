@@ -37,5 +37,5 @@ directory = /tmp
 
 # Hosts file directory
 [hosts]
-directory = /etc/hosts`
+file = /etc/hosts`
 )

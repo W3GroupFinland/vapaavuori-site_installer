@@ -10,7 +10,7 @@
 ### END INIT INFO
 
 USER="root" # User we wil run application as.
-CMD="sitestatus"
+CMD="site_installer"
 WORKDIR="/usr/local/site_installer"
 LOGDIR="/var/log/site_installer"
 PIDDIR="/var/run/site_installer"
