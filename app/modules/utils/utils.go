@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"code.google.com/p/gcfg"
 	"crypto/rand"
-	"log"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -105,15 +104,6 @@ func GetAbsDirectory(path string) (string, error) {
 	}
 
 	return absPath, nil
-}
-
-func FileExists(fp string) bool {
-	if _, err := os.Stat(fp); os.IsNotExist(err) {
-		log.Printf("No such file or directory: %v", fp)
-		return false
-	}
-
-	return true
 }
 
 func StripPathWhiteSpace(in []byte) []byte {

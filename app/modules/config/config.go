@@ -41,7 +41,7 @@ type Backup struct {
 
 type Hosts struct {
 	// TODO: Possible extra parameters to hosts.
-	Directory string
+	File string
 }
 
 type Platform struct {
@@ -79,6 +79,7 @@ type Config struct {
 	SiteTemplates       SiteTemplates       `gcfg:"site-templates"`
 	SiteServerTemplates SiteServerTemplates `gcfg:"site-server-templates"`
 	ServerConfigRoot    ServerConfigRoot    `gcfg:"server-config-root"`
+	WebTemplates        SiteTemplates       `gcfg:"web-templates"`
 }
 
 func NewConfig() *Config {

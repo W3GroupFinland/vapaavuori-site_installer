@@ -48,33 +48,15 @@ func Init(config []byte) *Application {
 
 	a.Base.Commands.HttpServer.Restart = cmd
 
-	if !utils.FileExists(a.Base.Config.Hosts.Directory) {
-		log.Fatalln("Hosts file doesn't exist. Please correct it before continuing.")
-	}
-
-	if !utils.FileExists(a.Base.Config.Backup.Directory) {
-		log.Fatalln("Backup directory doesn't exist. Please correct it before continuing.")
-	}
-
-	if !utils.FileExists(a.Base.Config.Platform.Directory) {
-		log.Fatalln("Platform directory doesn't exist. Please correct it before continuing.")
-	}
-
-	if !utils.FileExists(a.Base.Config.SiteTemplates.Directory) {
-		log.Fatalln("Site template directory doesn't exist. Please correct it before continuing.")
-	}
-
-	if !utils.FileExists(a.Base.Config.SiteServerTemplates.Directory) {
-		log.Fatalln("Site server template directory doesn't exist. Please correct it before continuing.")
-	}
-
-	if !utils.FileExists(a.Base.Config.SiteServerTemplates.Certificates) {
-		log.Fatalln("Site server templates directory doesn't exist. Please correct it before continuing.")
-	}
-
-	if !utils.FileExists(a.Base.Config.ServerConfigRoot.Directory) {
-		log.Fatalln("Site server config root directory doesn't exist. Please correct it before continuing.")
-	}
+	rf := utils.NewRequireFiles()
+	rf.Add(a.Base.Config.Hosts.File, "Hosts file").
+		Add(a.Base.Config.Backup.Directory, "Backup directory").
+		Add(a.Base.Config.Platform.Directory, "Platform directory").
+		Add(a.Base.Config.SiteTemplates.Directory, "Site template directory").
+		Add(a.Base.Config.SiteServerTemplates.Directory, "Site server template directory").
+		Add(a.Base.Config.SiteServerTemplates.Certificates, "Site server templates certificates directory").
+		Add(a.Base.Config.ServerConfigRoot.Directory, "Site server config root").
+		Require()
 
 	return &a
 }
@@ -96,14 +78,24 @@ func (a *Application) Run() {
 	defer a.Base.DataStore.DB.Close()
 
 	// Read web templates.
-	err := a.Base.Templates.CustomDelims().ReadDir("web/templates")
+	templatePath, err := utils.GetFileFullPath("web/templates")
+	if err != nil {
+		log.Fatalln("Application web template folder doesn't exist.")
+	}
+
+	err = a.Base.Templates.CustomDelims().ReadDir(templatePath)
 	if err != nil {
 		log.Println(err)
 	}
 
 	// Command line flags
 	port := flag.Int("port", a.Base.Config.Host.Port, "port to serve on")
-	dir := flag.String("directory", "web/files", "directory of web files")
+
+	filesPath, err := utils.GetFileFullPath("web/files")
+	if err != nil {
+		log.Fatalln("Application web files folder doesn't exist.")
+	}
+	dir := flag.String("directory", filesPath, "directory of web files")
 	flag.Parse()
 
 	// Register controllers.
