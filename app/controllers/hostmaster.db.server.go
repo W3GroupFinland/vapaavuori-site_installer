@@ -6,7 +6,7 @@ import (
 )
 
 func (c *HostMasterDB) CreateServerConfigs(tmpl *models.InstallTemplate) error {
-	if tmpl.HttpServer.Template != "" {
+	if tmpl.HttpServer.Include {
 		si := tmpl.HttpServer
 		id, err := c.CreateServerConfig(tmpl,
 			&models.DatabaseServerConfig{
@@ -33,7 +33,7 @@ func (c *HostMasterDB) CreateServerConfigs(tmpl *models.InstallTemplate) error {
 		}
 	}
 
-	if tmpl.SSLServer.Template != "" {
+	if tmpl.SSLServer.Include {
 		si := tmpl.SSLServer
 		id, err := c.CreateServerConfig(tmpl,
 			&models.DatabaseServerConfig{

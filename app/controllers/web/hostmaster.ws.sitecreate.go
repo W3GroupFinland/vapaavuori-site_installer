@@ -18,12 +18,20 @@ func (c *HostmasterWS) InitInstallTemplate(platformId int64, tmpl *models.Instal
 	tmpl.InstallInfo.DrupalRoot = filepath.Join(c.Base.Config.Platform.Directory, tmpl.InstallInfo.PlatformName)
 	tmpl.InstallInfo.TemplatePath = filepath.Join(c.Base.Config.SiteTemplates.Directory, tmpl.InstallInfo.TemplatePath)
 	tmpl.InstallInfo.InstallType = "template"
-	tmpl.HttpServer.ConfigRoot = c.Base.Config.ServerConfigRoot.Directory
-	tmpl.HttpServer.Template = filepath.Join(c.Base.Config.SiteServerTemplates.Directory, tmpl.HttpServer.Template)
-	tmpl.SSLServer.Certificate = filepath.Join(c.Base.Config.SiteServerTemplates.Certificates, tmpl.SSLServer.Certificate)
-	tmpl.SSLServer.ConfigRoot = c.Base.Config.ServerConfigRoot.Directory
-	tmpl.SSLServer.Key = filepath.Join(c.Base.Config.SiteServerTemplates.Certificates, tmpl.SSLServer.Key)
-	tmpl.SSLServer.Template = filepath.Join(c.Base.Config.SiteServerTemplates.Directory, tmpl.SSLServer.Template)
+
+	// Set HTTP server values if template not empty.
+	if tmpl.HttpServer.Include {
+		tmpl.HttpServer.ConfigRoot = c.Base.Config.ServerConfigRoot.Directory
+		tmpl.HttpServer.Template = filepath.Join(c.Base.Config.SiteServerTemplates.Directory, tmpl.HttpServer.Template)
+	}
+
+	// Set SSL server values if template not empty.
+	if tmpl.SSLServer.Include {
+		tmpl.SSLServer.Certificate = filepath.Join(c.Base.Config.SiteServerTemplates.Certificates, tmpl.SSLServer.Certificate)
+		tmpl.SSLServer.ConfigRoot = c.Base.Config.ServerConfigRoot.Directory
+		tmpl.SSLServer.Key = filepath.Join(c.Base.Config.SiteServerTemplates.Certificates, tmpl.SSLServer.Key)
+		tmpl.SSLServer.Template = filepath.Join(c.Base.Config.SiteServerTemplates.Directory, tmpl.SSLServer.Template)
+	}
 	tmpl.Init()
 
 	// TODO: Make this nicer..
@@ -60,7 +68,7 @@ func (c *HostmasterWS) ValidateInstallTemplate(tmpl *models.InstallTemplate) []*
 	}
 
 	// Http server values.
-	if tmpl.HttpServer.Template != "" {
+	if tmpl.HttpServer.Include {
 
 		if !utils.FileExists(tmpl.HttpServer.Template) {
 			errorList = append(errorList, web_models.NewFormError(
@@ -88,7 +96,7 @@ func (c *HostmasterWS) ValidateInstallTemplate(tmpl *models.InstallTemplate) []*
 	}
 
 	// SSL server values.
-	if tmpl.SSLServer.Template != "" {
+	if tmpl.SSLServer.Include {
 
 		if !utils.FileExists(tmpl.SSLServer.Template) {
 			errorList = append(errorList, web_models.NewFormError(
@@ -251,5 +259,6 @@ func (c *HostmasterWS) RegisterFullSite(conn *websocket.Conn, req *web_models.We
 		tmpl.RollBack.Execute()
 		return
 	}
+
 	resp.SetCallback(req).SetData(web_models.ResponseSiteCreated, nil)
 }

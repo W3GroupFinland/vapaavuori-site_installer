@@ -17,14 +17,14 @@ angular.module('webappApp')
 	
 	// Get platform listing.
 	HostmasterService.getPlatforms().then(function (result) {
-		$scope.platforms = platformsByName(result); // Set the result.
+		$scope.platforms = platformsByName(result.Data); // Set the result.
 	  
 	  	getSelectedPlatform();
 	});
 
 	// Refresh platform data.
 	$scope.$on('PLATFORMS', function(_, args) {
-	    $scope.platforms = platformsByName(args);
+	    $scope.platforms = platformsByName(args.Data);
 		
 	    getSelectedPlatform();
       	$scope.$apply();

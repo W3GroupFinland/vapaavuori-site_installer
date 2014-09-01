@@ -34,7 +34,7 @@ func (c *HostMasterDB) CreateSiteDomains(tmpl *models.InstallTemplate, domains *
 func (c *HostMasterDB) CreateSiteDomain(tmpl *models.InstallTemplate, domain *models.Domain) (int64, error) {
 	var id int64
 	if domain.SiteId == 0 || domain.ServerConfigId == 0 {
-		return id, errors.New("Site id or server config id is zero.")
+		return id, errors.New("Site Domain: Site id or server config id is zero.")
 	}
 
 	q := "INSERT INTO domain (site_id, server_config_id, type, name, host) VALUES(?,?,?,?,?)"

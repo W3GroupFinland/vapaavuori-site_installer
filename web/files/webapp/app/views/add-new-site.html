@@ -4,6 +4,15 @@
 
 			<div class="input-group">
 				<form novalidate>
+					<div ng-show="errors" class="alert alert-danger alert-error">
+						<strong>Form errors:</strong>
+						<ul>
+							<li ng-repeat="error in errors">
+								{{error.Key}}: {{error.Error}})
+							</li>
+						</ul>					
+					</div>
+
 					<h3>Add site to platform</h3>
 					<div class="form-group">
 						<label for="sitename">Sitename:</label>
@@ -22,10 +31,10 @@
  					<!-- HTTP server form inputs -->
  					<div class="form-group">
 						<label for="addhttp">Add http server:</label>
-  					<input type="checkbox" ng-model="httpServerAdded"></input>
+  					<input type="checkbox" ng-model="site.HttpServer.Include"></input>
   				</div>
   				
-  				<div class="form-group" ng-if="httpServerAdded" class="animate-if">
+  				<div class="form-group" ng-if="site.HttpServer.Include" class="animate-if">
   					<h3>Http-server info</h3>
 	 					
 	 					<div class="form-group">
@@ -65,10 +74,10 @@
   				<!-- SSL server form inputs -->
  					<div class="form-group">
 						<label for="addhttp">Add SSL server:</label>
-  					<input type="checkbox" ng-model="SSLServerAdded"></input>
+  					<input type="checkbox" ng-model="site.SSLServer.Include"></input>
   				</div>
   				
-  				<div class="form-group" ng-if="SSLServerAdded" class="animate-if">
+  				<div class="form-group" ng-if="site.SSLServer.Include" class="animate-if">
   					<h3>SSL-server info</h3> 
 
 	 					<div class="form-group">
