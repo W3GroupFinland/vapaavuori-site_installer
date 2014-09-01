@@ -18,7 +18,7 @@ angular.module('webappApp')
 
 		// Refresh platform data.
 		$rootScope.$on('STATUS_MESSAGE', function(_, args) {
-		      $rootScope.statusMessages.push(args.Message);
+		      $rootScope.statusMessages.push(args.Data.Message);
 		      $rootScope.$apply();
 		});		
 		

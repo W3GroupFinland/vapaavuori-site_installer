@@ -47,14 +47,19 @@ angular.module('webappApp')
     // On websocket message.
     ws.onmessage = function(message) {
         var data = angular.fromJson(message.data);
-        /*if (data.Type === "STATUS_MESSAGE") {
-          StatusService.setMessage('Hostmaster service connection closed.');
-        }*/
+
         if (data.Refresh) {
+          
+          var obj = {
+            Type: data.Type,
+            Data: data.Data,
+          };
+
           // TODO: Find some more elegant way to do this.
-          $rootScope.$broadcast(data.Type, data.Data);
+          $rootScope.$broadcast(data.Type, obj);
           return;
         }
+
         listener(data);
     };
 
@@ -81,7 +86,13 @@ angular.module('webappApp')
       var messageObj = data;
       // If an object exists with CallbackId in our callbacks object, resolve it.
       if(callbacks.hasOwnProperty(messageObj.CallbackId)) {
-        $rootScope.$apply(callbacks[messageObj.CallbackId].cb.resolve(messageObj.Data));
+
+        var obj = {
+          Type: messageObj.Type,
+          Data: messageObj.Data,
+        };
+
+        $rootScope.$apply(callbacks[messageObj.CallbackId].cb.resolve(obj));
         delete callbacks[messageObj.callbackID];
       }
     }

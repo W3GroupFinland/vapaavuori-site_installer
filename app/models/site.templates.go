@@ -56,6 +56,7 @@ type MysqlUserHosts struct {
 }
 
 type HttpServerTemplate struct {
+	Include        bool
 	Type           string
 	Template       string
 	Port           int64

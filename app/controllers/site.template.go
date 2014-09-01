@@ -27,7 +27,7 @@ func (c *SiteTemplate) ReadTemplate(file string) (*models.InstallTemplate, error
 func (c *SiteTemplate) WriteApacheConfig(tmpl *models.InstallTemplate) error {
 	outputFileName := tmpl.InstallInfo.SiteName
 
-	if tmpl.HttpServer.Template != "" {
+	if tmpl.HttpServer.Include {
 		// Write regular apache config.
 		log.Println("Write regular apache config.")
 
@@ -52,7 +52,7 @@ func (c *SiteTemplate) WriteApacheConfig(tmpl *models.InstallTemplate) error {
 
 		tmpl.HttpServer.ConfigFile = outFile
 	}
-	if tmpl.SSLServer.Template != "" {
+	if tmpl.SSLServer.Include {
 		// Write SSL apache config.
 		log.Println("Write SSL config.")
 
@@ -82,6 +82,7 @@ func (c *SiteTemplate) WriteApacheConfig(tmpl *models.InstallTemplate) error {
 }
 
 func (c *SiteTemplate) WriteServerConfig(tmpl *models.InstallTemplate, outputFileName string, templateFile string, configRoot string) error {
+	log.Println("Template file:", templateFile)
 	t := template.Must(template.New("server.config").ParseFiles(templateFile))
 
 	fullPath := filepath.Join(configRoot, outputFileName)

@@ -18,8 +18,8 @@ type Site struct {
 	Base  *a.AppBase
 }
 
-func (s *Site) Create(templ *models.InstallTemplate) (*database.DatabaseInfo, error) {
-	info := &templ.InstallInfo
+func (s *Site) Create(tmpl *models.InstallTemplate) (*database.DatabaseInfo, error) {
+	info := &tmpl.InstallInfo
 	var err error
 
 	exists, _, err := s.InstallRootStatus(info.DrupalRoot)
@@ -35,9 +35,9 @@ func (s *Site) Create(templ *models.InstallTemplate) (*database.DatabaseInfo, er
 	var db *database.DatabaseInfo
 	switch info.InstallType {
 	case "standard":
-		db, err = s.StandardInstallation(templ, info.InstallType)
+		db, err = s.StandardInstallation(tmpl, info.InstallType)
 	case "template":
-		db, err = s.SiteTemplateInstallation(templ)
+		db, err = s.SiteTemplateInstallation(tmpl)
 	}
 
 	if err != nil {
@@ -47,13 +47,13 @@ func (s *Site) Create(templ *models.InstallTemplate) (*database.DatabaseInfo, er
 	return db, nil
 }
 
-func (s *Site) StandardInstallation(templ *models.InstallTemplate, installType string) (*database.DatabaseInfo, error) {
-	db, err := s.CreateDatabase(templ)
+func (s *Site) StandardInstallation(tmpl *models.InstallTemplate, installType string) (*database.DatabaseInfo, error) {
+	db, err := s.CreateDatabase(tmpl)
 	if err != nil {
 		return db, err
 	}
 
-	info := templ.InstallInfo
+	info := tmpl.InstallInfo
 
 	var (
 		mysqlStr    = s.Drush.FormatDatabaseStr(db)
@@ -67,18 +67,18 @@ func (s *Site) StandardInstallation(templ *models.InstallTemplate, installType s
 	}
 
 	// Rollback: Remove install directory.
-	templ.RollBack.AddFileFunction(
+	tmpl.RollBack.AddFileFunction(
 		utils.RemoveDirectory,
 		filepath.Join(info.DrupalRoot, "sites", info.SubDirectory))
 
 	return db, nil
 }
 
-func (s *Site) SiteTemplateInstallation(templ *models.InstallTemplate) (*database.DatabaseInfo, error) {
-	info := templ.InstallInfo
+func (s *Site) SiteTemplateInstallation(tmpl *models.InstallTemplate) (*database.DatabaseInfo, error) {
+	info := tmpl.InstallInfo
 
 	// Install new site.
-	db, err := s.StandardInstallation(templ, "standard")
+	db, err := s.StandardInstallation(tmpl, "standard")
 	if err != nil {
 		return db, err
 	}
@@ -108,12 +108,12 @@ func (s *Site) SiteTemplateInstallation(templ *models.InstallTemplate) (*databas
 	}
 
 	ds, err := database.NewDataStore().OpenConn(
-		templ.MysqlUser.Value,
-		templ.MysqlPassword.Value,
+		tmpl.MysqlUser.Value,
+		tmpl.MysqlPassword.Value,
 		s.Base.Config.Mysql.Protocol,
 		s.Base.Config.Mysql.Host,
 		s.Base.Config.Mysql.Port,
-		templ.DatabaseName.Value,
+		tmpl.DatabaseName.Value,
 	)
 
 	defer ds.DB.Close()
@@ -150,17 +150,17 @@ func (s *Site) SiteTemplateInstallation(templ *models.InstallTemplate) (*databas
 		return db, err
 	}
 
-	err = s.Drush.VariableSet(templ, "file_private_path", filepath.Join("sites", info.SubDirectory, "private", "files"))
-	err = s.Drush.VariableSet(templ, "file_public_path", filepath.Join("sites", info.SubDirectory, "files"))
-	err = s.Drush.VariableSet(templ, "file_temporary_path", filepath.Join("sites", info.SubDirectory, "private", "temp"))
+	err = s.Drush.VariableSet(tmpl, "file_private_path", filepath.Join("sites", info.SubDirectory, "private", "files"))
+	err = s.Drush.VariableSet(tmpl, "file_public_path", filepath.Join("sites", info.SubDirectory, "files"))
+	err = s.Drush.VariableSet(tmpl, "file_temporary_path", filepath.Join("sites", info.SubDirectory, "private", "temp"))
 
 	if err != nil {
 		log.Printf("Error: Failed to set variables with drush. Error message: %v\n", err.Error())
 		return db, err
 	}
 
-	if templ.SSLServer.DomainInfo.DomainName != "" {
-		s.Drush.VariableSet(templ, "securepages_basepath_ssl", "//"+templ.SSLServer.DomainInfo.DomainName)
+	if tmpl.SSLServer.DomainInfo.DomainName != "" {
+		s.Drush.VariableSet(tmpl, "securepages_basepath_ssl", "//"+tmpl.SSLServer.DomainInfo.DomainName)
 	}
 
 	log.Println("Database succesfully imported.")
@@ -168,36 +168,45 @@ func (s *Site) SiteTemplateInstallation(templ *models.InstallTemplate) (*databas
 	return db, nil
 }
 
-func (s *Site) GetSiteTemplateDomains(templ *models.InstallTemplate) *models.SiteDomains {
+func (s *Site) GetSiteTemplateDomains(tmpl *models.InstallTemplate) *models.SiteDomains {
 	domains := models.NewSiteDomains()
 
-	// Set types to domains so they can be later identified.
-	templ.HttpServer.DomainInfo.Type = models.DomainTypeServerName
-	templ.SSLServer.DomainInfo.Type = models.DomainTypeServerName
+	if tmpl.HttpServer.Include {
+		// Set types to domains so they can be later identified.
+		tmpl.HttpServer.DomainInfo.Type = models.DomainTypeServerName
 
-	// Get domains
-	domains.SetDomain(templ.HttpServer.DomainInfo)
-	domains.SetDomain(templ.SSLServer.DomainInfo)
+		// Get domains
+		domains.SetDomain(tmpl.HttpServer.DomainInfo)
 
-	for _, domain := range templ.HttpServer.DomainAliases {
-		domain.Type = models.DomainTypeServerAlias
-		domains.SetDomain(domain)
-	}
-	for _, domain := range templ.SSLServer.DomainAliases {
-		domain.Type = models.DomainTypeServerAlias
-		domains.SetDomain(domain)
+		for _, domain := range tmpl.HttpServer.DomainAliases {
+			domain.Type = models.DomainTypeServerAlias
+			domains.SetDomain(domain)
+		}
 	}
 
-	domains.SubDirectory = templ.InstallInfo.SubDirectory
-	domains.SiteName = templ.InstallInfo.SiteName
+	if tmpl.SSLServer.Include {
+		// Set types to domains so they can be later identified.
+		tmpl.SSLServer.DomainInfo.Type = models.DomainTypeServerName
+
+		// Get domains
+		domains.SetDomain(tmpl.SSLServer.DomainInfo)
+
+		for _, domain := range tmpl.SSLServer.DomainAliases {
+			domain.Type = models.DomainTypeServerAlias
+			domains.SetDomain(domain)
+		}
+	}
+
+	domains.SubDirectory = tmpl.InstallInfo.SubDirectory
+	domains.SiteName = tmpl.InstallInfo.SiteName
 
 	return domains
 }
 
-func (s *Site) CreateDomainSymlinks(templ *models.InstallTemplate, domains *models.SiteDomains) {
+func (s *Site) CreateDomainSymlinks(tmpl *models.InstallTemplate, domains *models.SiteDomains) {
 	for _, domain := range domains.Domains {
-		pathToSubDir := filepath.Join(templ.InstallInfo.DrupalRoot, "sites", templ.InstallInfo.SubDirectory)
-		pathToDomain := filepath.Join(templ.InstallInfo.DrupalRoot, "sites", domain.DomainName)
+		pathToSubDir := filepath.Join(tmpl.InstallInfo.DrupalRoot, "sites", tmpl.InstallInfo.SubDirectory)
+		pathToDomain := filepath.Join(tmpl.InstallInfo.DrupalRoot, "sites", domain.DomainName)
 
 		if _, err := os.Stat(pathToDomain); err != nil {
 			if os.IsNotExist(err) {
@@ -205,7 +214,7 @@ func (s *Site) CreateDomainSymlinks(templ *models.InstallTemplate, domains *mode
 				if err != nil {
 					log.Printf("Error creating symlink: %v\n", err.Error())
 				}
-				templ.RollBack.AddFileFunction(utils.RemoveFile, pathToDomain)
+				tmpl.RollBack.AddFileFunction(utils.RemoveFile, pathToDomain)
 			}
 		}
 	}

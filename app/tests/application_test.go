@@ -4,6 +4,7 @@ import (
 	"github.com/tuomasvapaavuori/site_installer/app"
 	"github.com/tuomasvapaavuori/site_installer/app/tests/hostmaster"
 	"github.com/tuomasvapaavuori/site_installer/app/tests/hosts_domains"
+	"github.com/tuomasvapaavuori/site_installer/app/tests/process_state"
 	"github.com/tuomasvapaavuori/site_installer/app/tests/system"
 	"testing"
 )
@@ -17,6 +18,7 @@ func TestRunApplicationTests(t *testing.T) {
 	defer app.Base.DataStore.DB.Close()
 
 	// Run tests
+	process_state.Init().RunTests(t)
 	hosts_domains.Init().RunTests(t)
 	hostmaster.Init(app).RunTests(t)
 	system.Init(app).RunTests(t)

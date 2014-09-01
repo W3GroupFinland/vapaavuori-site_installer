@@ -55,34 +55,39 @@ angular.module('webappApp')
 
 		// Get site template listing.
 		HostmasterService.getSiteTemplates().then(function (result) {
-			$scope.templates = result;
+			$scope.templates = result.Data;
 		});
 
 		// Get site template listing.
 		HostmasterService.getServerTemplates().then(function (result) {
-			$scope.httpTemplates = result;
-			$scope.sslTemplates = result;
+			$scope.httpTemplates = result.Data;
+			$scope.sslTemplates = result.Data;
 		});
 
 		// Get site template listing.
 		HostmasterService.getServerCertificates().then(function (result) {
-			$scope.certificates = result;
-			$scope.certKeys = result;
+			$scope.certificates = result.Data;
+			$scope.certKeys = result.Data;
 		});		
 
 		$scope.http = {};
 		$scope.http.aliases = [];
 		
 		$scope.ssl = {};
-		$scope.ssl.aliases = [];	
+		$scope.ssl.aliases = [];
+		$scope.errors = [];
 
 		$scope.submit = function(site) {
 			// Copy aliases to their right places.
-			site.HttpServer.DomainAliases = $scope.http.aliases;
-			site.SSLServer.DomainAliases = $scope.ssl.aliases;
+			if (site.HttpServer !== undefined) {
+				site.HttpServer.DomainAliases = $scope.http.aliases;
+				site.HttpServer.Port = parseInt(site.HttpServer.Port);
+			}
+			if (site.SSLServer !== undefined) {
+				site.SSLServer.DomainAliases = $scope.ssl.aliases;
+				site.SSLServer.Port = parseInt(site.SSLServer.Port);
+			}
 			
-			site.HttpServer.Port = parseInt(site.HttpServer.Port);
-			site.SSLServer.Port = parseInt(site.SSLServer.Port);
 			site.InstallInfo.PlatformId = parseInt(site.InstallInfo.PlatformId);
 			site.InstallInfo.PlatformName = $scope.platformName;
 			
@@ -91,11 +96,14 @@ angular.module('webappApp')
 
 			HostmasterService.registerFullSite(site).then(function (result) {
 				console.log('RESULT', result);
+				if (result.Type === 'FORM_ERROR') {
+					$scope.errors = result.Data;
+				}
 			});
 		};
 
 		$scope.reset = function() {
-		$scope.site = angular.copy($scope.master);
+			$scope.site = angular.copy($scope.master);
 		};
 
 		$scope.reset();		

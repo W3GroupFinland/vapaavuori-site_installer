@@ -88,7 +88,7 @@ func (a *ApplicationTests) TestCreateConfigsAndDomains(t *testing.T) {
 }
 
 func (a *ApplicationTests) CheckServerDomainsHasIds(tmpl *models.InstallTemplate, t *testing.T) error {
-	if tmpl.HttpServer.Template != "" {
+	if tmpl.HttpServer.Include {
 		err := a.CheckDomainHasIds(tmpl.HttpServer.DomainInfo, t)
 		if err != nil {
 			return err
@@ -101,7 +101,7 @@ func (a *ApplicationTests) CheckServerDomainsHasIds(tmpl *models.InstallTemplate
 			}
 		}
 	}
-	if tmpl.SSLServer.Template != "" {
+	if tmpl.SSLServer.Include {
 		err := a.CheckDomainHasIds(tmpl.SSLServer.DomainInfo, t)
 		if err != nil {
 			return err
@@ -156,6 +156,7 @@ func (a *ApplicationTests) TestCreateConfigsAndDomains_Data(t *testing.T) *model
 			ServerConfigRoot: a.Application.Base.Config.Backup.Directory,
 		},
 		HttpServer: models.HttpServerTemplate{
+			Include:    true,
 			Type:       "apache",
 			Template:   "/bug/it/default.conf",
 			Port:       8888,
@@ -168,6 +169,7 @@ func (a *ApplicationTests) TestCreateConfigsAndDomains_Data(t *testing.T) *model
 		},
 	}
 
+	tmpl.SSLServer.Include = true
 	tmpl.SSLServer.Type = "apache"
 	tmpl.SSLServer.Template = "/bug/it/ssl-default.conf"
 	tmpl.SSLServer.Port = 443

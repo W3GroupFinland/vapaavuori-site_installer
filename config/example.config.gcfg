@@ -39,4 +39,4 @@ port = 8888
 
 # Hosts file directory
 [hosts]
-directory = /etc/hosts
+file = /etc/hosts
