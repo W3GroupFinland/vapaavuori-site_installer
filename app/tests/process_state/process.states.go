@@ -1,17 +1,19 @@
 package process_state
 
 import (
-	"github.com/tuomasvapaavuori/site_installer/app/models"
+	"github.com/gorilla/websocket"
+	"github.com/tuomasvapaavuori/site_installer/app/models/web"
 	"testing"
 )
 
 func (p *ProcessState) TestProcessStartsAndEnds(t *testing.T) {
-	outChan := make(chan string)
+	msgChan := make(chan *web_models.ConnStatusMessage)
+	conn := websocket.Conn{}
 
-	process := models.NewProcess("Test Process", outChan)
+	process := web_models.NewWebProcess("Test Process", msgChan, &conn)
 
 	go func() {
-		finished := p.ListenOutChannel(outChan, t)
+		finished := p.ListenOutChannel(msgChan, t)
 		if !finished {
 			t.Error("Error finishing process.")
 		}
@@ -21,10 +23,10 @@ func (p *ProcessState) TestProcessStartsAndEnds(t *testing.T) {
 	process.Finish()
 }
 
-func (p *ProcessState) ListenOutChannel(channel chan string, t *testing.T) bool {
+func (p *ProcessState) ListenOutChannel(channel chan *web_models.ConnStatusMessage, t *testing.T) bool {
 	for {
 		msg := <-channel
-		switch msg {
+		switch msg.Message {
 		case "Process: Test Process started.":
 			t.Log(msg)
 			break

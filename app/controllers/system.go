@@ -14,7 +14,9 @@ type System struct {
 	HostMaster *HostMasterDB
 }
 
-func (c *System) HttpServerRestart() error {
+func (c *System) HttpServerRestart(sp *models.SubProcess) error {
+	sp.Start()
+
 	if c.Site.Base.Commands.HttpServer.Restart.Command == "" {
 		return errors.New("No command set.")
 	}
@@ -27,6 +29,7 @@ func (c *System) HttpServerRestart() error {
 
 	log.Println(string(out))
 
+	sp.Finish()
 	return nil
 }
 

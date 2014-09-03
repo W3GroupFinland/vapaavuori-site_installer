@@ -5,7 +5,9 @@ import (
 	"github.com/tuomasvapaavuori/site_installer/app/models"
 )
 
-func (c *HostMasterDB) CreateServerConfigs(tmpl *models.InstallTemplate) error {
+func (c *HostMasterDB) CreateServerConfigs(tmpl *models.InstallTemplate, sp *models.SubProcess) error {
+	sp.Start()
+
 	if tmpl.HttpServer.Include {
 		si := tmpl.HttpServer
 		id, err := c.CreateServerConfig(tmpl,
@@ -62,6 +64,7 @@ func (c *HostMasterDB) CreateServerConfigs(tmpl *models.InstallTemplate) error {
 		}
 	}
 
+	sp.Finish()
 	return nil
 }
 

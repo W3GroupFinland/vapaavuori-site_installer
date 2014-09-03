@@ -18,7 +18,7 @@ type Site struct {
 	Base  *a.AppBase
 }
 
-func (s *Site) Create(tmpl *models.InstallTemplate) (*database.DatabaseInfo, error) {
+func (s *Site) Create(tmpl *models.InstallTemplate, sp *models.SubProcess) (*database.DatabaseInfo, error) {
 	info := &tmpl.InstallInfo
 	var err error
 
@@ -35,9 +35,9 @@ func (s *Site) Create(tmpl *models.InstallTemplate) (*database.DatabaseInfo, err
 	var db *database.DatabaseInfo
 	switch info.InstallType {
 	case "standard":
-		db, err = s.StandardInstallation(tmpl, info.InstallType)
+		db, err = s.StandardInstallation(tmpl, info.InstallType, sp)
 	case "template":
-		db, err = s.SiteTemplateInstallation(tmpl)
+		db, err = s.SiteTemplateInstallation(tmpl, sp)
 	}
 
 	if err != nil {
@@ -47,7 +47,7 @@ func (s *Site) Create(tmpl *models.InstallTemplate) (*database.DatabaseInfo, err
 	return db, nil
 }
 
-func (s *Site) StandardInstallation(tmpl *models.InstallTemplate, installType string) (*database.DatabaseInfo, error) {
+func (s *Site) StandardInstallation(tmpl *models.InstallTemplate, installType string, sp *models.SubProcess) (*database.DatabaseInfo, error) {
 	db, err := s.CreateDatabase(tmpl)
 	if err != nil {
 		return db, err
@@ -74,11 +74,13 @@ func (s *Site) StandardInstallation(tmpl *models.InstallTemplate, installType st
 	return db, nil
 }
 
-func (s *Site) SiteTemplateInstallation(tmpl *models.InstallTemplate) (*database.DatabaseInfo, error) {
+func (s *Site) SiteTemplateInstallation(tmpl *models.InstallTemplate, sp *models.SubProcess) (*database.DatabaseInfo, error) {
+	sp.Start()
+
 	info := tmpl.InstallInfo
 
 	// Install new site.
-	db, err := s.StandardInstallation(tmpl, "standard")
+	db, err := s.StandardInstallation(tmpl, "standard", sp)
 	if err != nil {
 		return db, err
 	}
@@ -87,12 +89,15 @@ func (s *Site) SiteTemplateInstallation(tmpl *models.InstallTemplate) (*database
 		siteSubDirectory = filepath.Join(info.DrupalRoot, "sites", info.SubDirectory)
 	)
 
+	sp.Update("Remove files from new created site.")
 	// Remove files folder under new created site.
 	err = os.RemoveAll(filepath.Join(info.DrupalRoot, "sites", info.SubDirectory, "files"))
 	if err != nil {
 		log.Println(err)
 		return db, err
 	}
+
+	sp.Update("Copy template files to new site.")
 	// Copy files from given template to new site.
 	ct := utils.CopyTarget{}
 	err = ct.CopyDirectory(filepath.Join(info.TemplatePath, "site-files"), siteSubDirectory)
@@ -101,6 +106,7 @@ func (s *Site) SiteTemplateInstallation(tmpl *models.InstallTemplate) (*database
 		return db, err
 	}
 
+	sp.Update("Empty database from new site.")
 	// Empty database from new site.
 	_, err = s.Drush.Run("-y", "-r", info.DrupalRoot, info.SubDirectory, "sql-drop")
 	if err != nil {
@@ -132,12 +138,14 @@ func (s *Site) SiteTemplateInstallation(tmpl *models.InstallTemplate) (*database
 
 	r := bufio.NewReader(fi)
 
+	sp.Update("Importing template database.")
 	err = ds.SqlImport(r)
 	if err != nil {
 		log.Println(err)
 		return db, err
 	}
 
+	sp.Update("Chown web user folders.")
 	err = utils.ChownRecursive(filepath.Join(info.DrupalRoot, "sites", info.SubDirectory, "private"), info.HttpUser, info.HttpGroup)
 	if err != nil {
 		log.Println(err)
@@ -150,6 +158,7 @@ func (s *Site) SiteTemplateInstallation(tmpl *models.InstallTemplate) (*database
 		return db, err
 	}
 
+	sp.Update("Setting site directory variables with drush.")
 	err = s.Drush.VariableSet(tmpl, "file_private_path", filepath.Join("sites", info.SubDirectory, "private", "files"))
 	err = s.Drush.VariableSet(tmpl, "file_public_path", filepath.Join("sites", info.SubDirectory, "files"))
 	err = s.Drush.VariableSet(tmpl, "file_temporary_path", filepath.Join("sites", info.SubDirectory, "private", "temp"))
@@ -165,6 +174,7 @@ func (s *Site) SiteTemplateInstallation(tmpl *models.InstallTemplate) (*database
 
 	log.Println("Database succesfully imported.")
 
+	sp.Finish()
 	return db, nil
 }
 
@@ -203,7 +213,9 @@ func (s *Site) GetSiteTemplateDomains(tmpl *models.InstallTemplate) *models.Site
 	return domains
 }
 
-func (s *Site) CreateDomainSymlinks(tmpl *models.InstallTemplate, domains *models.SiteDomains) {
+func (s *Site) CreateDomainSymlinks(tmpl *models.InstallTemplate, domains *models.SiteDomains, sp *models.SubProcess) {
+	sp.Start()
+
 	for _, domain := range domains.Domains {
 		pathToSubDir := filepath.Join(tmpl.InstallInfo.DrupalRoot, "sites", tmpl.InstallInfo.SubDirectory)
 		pathToDomain := filepath.Join(tmpl.InstallInfo.DrupalRoot, "sites", domain.DomainName)
@@ -218,6 +230,8 @@ func (s *Site) CreateDomainSymlinks(tmpl *models.InstallTemplate, domains *model
 			}
 		}
 	}
+
+	sp.Finish()
 }
 
 func (s *Site) InstallRootStatus(path string) (bool, *models.SiteRootInfo, error) {

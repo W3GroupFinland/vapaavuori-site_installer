@@ -61,7 +61,7 @@ func (c *HostmasterWS) PlatformsUpdated() {
 }
 
 func (c *HostmasterWS) MessageToConnection(conn *websocket.Conn, msg string) {
-	data := web_models.NewConnStatusMessage(conn, msg)
+	data := web_models.NewConnStatusMessage(conn, msg, web_models.ResponseStatusMessage)
 	c.Channels.ConnStatusMsg <- data
 }
 
@@ -95,7 +95,16 @@ func (c *HostmasterWS) StatusUpdater() {
 			conn := msg.Connection
 			// Set new message.
 			data := web_models.StatusMessage{Message: msg.Message}
-			resp.SetData(web_models.ResponseStatusMessage, data).RefreshContent()
+
+			// Switch to handle message types.
+			switch msg.Type {
+			case web_models.ResponseProcessMessage:
+				resp.SetData(web_models.ResponseProcessMessage, data).RefreshContent()
+				break
+			default:
+				resp.SetData(web_models.ResponseStatusMessage, data).RefreshContent()
+			}
+
 			err := conn.WriteJSON(resp)
 			if err != nil {
 				c.ConnectionDelete(conn)

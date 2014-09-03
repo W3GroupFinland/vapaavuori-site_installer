@@ -15,11 +15,13 @@ const (
 	ResponseUser               = "USER"
 	ResponsePlatformRegistered = "PLATFORM_REGISTERED"
 	ResponseStatusMessage      = "STATUS_MESSAGE"
+	ResponseProcessMessage     = "PROCESS_MESSAGE"
 	ResponseSiteTemplates      = "SITE_TEMPLATES"
 	ResponseServerTemplates    = "SERVER_TEMPLATES"
 	ResponseServerCertificates = "SERVER_CERTIFICATES"
 	ResponseSiteCreated        = "SITE_CREATED"
 	ResponseFormError          = "FORM_ERROR"
+	ResponseProcessStarting    = "PROCESS_STARTING"
 )
 
 type WebSocketRequest struct {
