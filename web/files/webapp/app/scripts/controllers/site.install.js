@@ -12,7 +12,6 @@ angular.module('webappApp')
 		$scope.processMsg = [];
 
 		$rootScope.$on('PROCESS_MESSAGE', function(_, args) {
-			console.log(args);
 			$scope.processMsg.push(args.Data.Message);
 			$scope.$apply();
 		});		

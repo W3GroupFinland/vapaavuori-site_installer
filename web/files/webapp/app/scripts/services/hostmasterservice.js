@@ -23,7 +23,7 @@ angular.module('webappApp')
     var ws = {};
     try {
       // Create our websocket object with the address to the websocket
-      ws = new WebSocket('ws://localhost:8888/app/ws');
+      ws = new WebSocket('wss://local.hostmaster.fi/app/ws');
     } catch (err) {
       console.log(err);
       return err;

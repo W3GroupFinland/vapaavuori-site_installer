@@ -55,8 +55,15 @@ func Init(config []byte) *Application {
 		Add(a.Base.Config.SiteTemplates.Directory, "Site template directory").
 		Add(a.Base.Config.SiteServerTemplates.Directory, "Site server template directory").
 		Add(a.Base.Config.SiteServerTemplates.Certificates, "Site server templates certificates directory").
-		Add(a.Base.Config.ServerConfigRoot.Directory, "Site server config root").
-		Require()
+		Add(a.Base.Config.ServerConfigRoot.Http, "Site HTTP config root").
+		Add(a.Base.Config.ServerConfigRoot.SSL, "Site SSL config root")
+
+	if a.Base.Config.Ssl.HttpSsl {
+		rf.Add(a.Base.Config.Ssl.CertFile, "SSL Certificate file").
+			Add(a.Base.Config.Ssl.PrivateFile, "SSL Certificate Private file")
+	}
+
+	rf.Require()
 
 	return &a
 }
@@ -112,6 +119,17 @@ func (a *Application) Run() {
 
 	log.Printf("Running on port %d\n", *port)
 	addr := fmt.Sprintf("%v:%d", a.Base.Config.Host.Name, *port)
-	err = http.ListenAndServe(addr, nil)
-	fmt.Println(err.Error())
+
+	// Check for https settings.
+	if a.Base.Config.Ssl.HttpSsl {
+		err := http.ListenAndServeTLS(addr, a.Base.Config.Ssl.CertFile, a.Base.Config.Ssl.PrivateFile, nil)
+		if err != nil {
+			fmt.Println(err)
+		}
+	} else {
+		err = http.ListenAndServe(addr, nil)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
 }

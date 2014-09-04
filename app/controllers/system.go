@@ -5,6 +5,7 @@ import (
 	"github.com/tuomasvapaavuori/site_installer/app/models"
 	"io/ioutil"
 	"log"
+	"os"
 	"os/exec"
 	"path/filepath"
 )
@@ -47,7 +48,7 @@ func (c *System) GetDrupalPlatforms() (models.PlatformList, error) {
 	}
 
 	for _, file := range files {
-		if file.IsDir() {
+		if file.IsDir() || file.Mode()&os.ModeSymlink == os.ModeSymlink {
 			path := filepath.Join(pd, file.Name())
 
 			exists, info, err := c.Site.InstallRootStatus(path)
