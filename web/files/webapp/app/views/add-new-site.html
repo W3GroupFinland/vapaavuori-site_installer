@@ -8,12 +8,12 @@
 						<strong>Form errors:</strong>
 						<ul>
 							<li ng-repeat="error in errors">
-								{{error.Key}}: {{error.Error}})
+								{{error.Key}}: {{error.Error}}
 							</li>
 						</ul>					
 					</div>
 
-					<h3>Add site to platform</h3>
+					<h3>Add site to platform <strong>{{platformName}}</strong></h3>
 					<div class="form-group">
 						<label for="sitename">Sitename:</label>
 						<input class="form-control" type="text" ng-model="site.InstallInfo.SiteName" placeholder="enter site name">

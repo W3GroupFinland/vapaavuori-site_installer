@@ -9,7 +9,8 @@
  */
 
 angular.module('webappApp')
-  .factory('HostmasterService', ['$q', '$rootScope', 'StatusService', function($q, $rootScope, StatusService) {
+  .factory('HostmasterService', ['$q', '$rootScope', 'StatusService', 'configuration', 
+    function($q, $rootScope, StatusService, configuration) {
 
     // We return this object to anything injecting our service
     var Service = {};
@@ -23,7 +24,7 @@ angular.module('webappApp')
     var ws = {};
     try {
       // Create our websocket object with the address to the websocket
-      ws = new WebSocket('ws://localhost:8888/app/ws');
+      ws = new WebSocket(configuration.wsServer);
     } catch (err) {
       console.log(err);
       return err;
@@ -54,6 +55,8 @@ angular.module('webappApp')
             Type: data.Type,
             Data: data.Data,
           };
+
+          console.log(data);
 
           // TODO: Find some more elegant way to do this.
           $rootScope.$broadcast(data.Type, obj);

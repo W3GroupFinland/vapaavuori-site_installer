@@ -10,15 +10,17 @@ func NewStatusMessage(msg string) *StatusMessage {
 }
 
 // TODO: Implement date..
-func NewConnStatusMessage(conn *websocket.Conn, msg string) *ConnStatusMessage {
+func NewConnStatusMessage(conn *websocket.Conn, msg string, t string) *ConnStatusMessage {
 	csm := ConnStatusMessage{Connection: conn}
 	csm.Message = msg
+	csm.Type = t
 	return &csm
 }
 
 type StatusMessage struct {
 	Date    string
 	Message string
+	Type    string
 }
 
 type ConnStatusMessage struct {

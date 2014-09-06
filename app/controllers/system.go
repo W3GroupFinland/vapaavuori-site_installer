@@ -5,6 +5,7 @@ import (
 	"github.com/tuomasvapaavuori/site_installer/app/models"
 	"io/ioutil"
 	"log"
+	"os"
 	"os/exec"
 	"path/filepath"
 )
@@ -14,7 +15,9 @@ type System struct {
 	HostMaster *HostMasterDB
 }
 
-func (c *System) HttpServerRestart() error {
+func (c *System) HttpServerRestart(sp *models.SubProcess) error {
+	sp.Start()
+
 	if c.Site.Base.Commands.HttpServer.Restart.Command == "" {
 		return errors.New("No command set.")
 	}
@@ -27,6 +30,7 @@ func (c *System) HttpServerRestart() error {
 
 	log.Println(string(out))
 
+	sp.Finish()
 	return nil
 }
 
@@ -44,7 +48,7 @@ func (c *System) GetDrupalPlatforms() (models.PlatformList, error) {
 	}
 
 	for _, file := range files {
-		if file.IsDir() {
+		if file.IsDir() || file.Mode()&os.ModeSymlink == os.ModeSymlink {
 			path := filepath.Join(pd, file.Name())
 
 			exists, info, err := c.Site.InstallRootStatus(path)

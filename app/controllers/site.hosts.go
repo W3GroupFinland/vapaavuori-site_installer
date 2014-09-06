@@ -185,7 +185,9 @@ func (s *Site) HostsContentAssertsTrue(content io.Reader) (bool, error) {
 	return true, nil
 }
 
-func (s *Site) AddToHosts(templ *models.InstallTemplate, domains *models.SiteDomains) error {
+func (s *Site) AddToHosts(templ *models.InstallTemplate, domains *models.SiteDomains, sp *models.SubProcess) error {
+	sp.Start()
+
 	hostsFile := s.Base.Config.Hosts.File
 
 	hostsMap, err := s.ReadHostsFile(hostsFile)
@@ -216,6 +218,7 @@ func (s *Site) AddToHosts(templ *models.InstallTemplate, domains *models.SiteDom
 
 	templ.RollBack.AddFileRecoverFunction(s.RecoverBackupFile, &models.FileBackup{NewFile: hostsFile, Backup: backup})
 
+	sp.Finish()
 	return nil
 }
 

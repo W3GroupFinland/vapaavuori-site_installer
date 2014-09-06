@@ -20,7 +20,7 @@ angular.module('webappApp')
 		$rootScope.$on('STATUS_MESSAGE', function(_, args) {
 		      $rootScope.statusMessages.push(args.Data.Message);
 		      $rootScope.$apply();
-		});		
+		});
 		
 		// Get method for platforms
 		Service.setMessage = function(msg) {

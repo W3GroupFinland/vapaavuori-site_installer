@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"path/filepath"
+	"time"
 )
 
 func (c *HostmasterWS) InitInstallTemplate(platformId int64, tmpl *models.InstallTemplate) {
@@ -16,21 +17,31 @@ func (c *HostmasterWS) InitInstallTemplate(platformId int64, tmpl *models.Instal
 	tmpl.InstallInfo.HttpUser = "_www"
 	tmpl.InstallInfo.HttpGroup = "_www"
 	tmpl.InstallInfo.DrupalRoot = filepath.Join(c.Base.Config.Platform.Directory, tmpl.InstallInfo.PlatformName)
-	tmpl.InstallInfo.TemplatePath = filepath.Join(c.Base.Config.SiteTemplates.Directory, tmpl.InstallInfo.TemplatePath)
+
+	if tmpl.InstallInfo.TemplatePath != "" {
+		tmpl.InstallInfo.TemplatePath = filepath.Join(c.Base.Config.SiteTemplates.Directory, tmpl.InstallInfo.TemplatePath)
+	}
+
 	tmpl.InstallInfo.InstallType = "template"
 
 	// Set HTTP server values if template not empty.
 	if tmpl.HttpServer.Include {
-		tmpl.HttpServer.ConfigRoot = c.Base.Config.ServerConfigRoot.Directory
-		tmpl.HttpServer.Template = filepath.Join(c.Base.Config.SiteServerTemplates.Directory, tmpl.HttpServer.Template)
+		tmpl.HttpServer.ConfigRoot = c.Base.Config.ServerConfigRoot.Http
+
+		if tmpl.HttpServer.Template != "" {
+			tmpl.HttpServer.Template = filepath.Join(c.Base.Config.SiteServerTemplates.Directory, tmpl.HttpServer.Template)
+		}
 	}
 
 	// Set SSL server values if template not empty.
 	if tmpl.SSLServer.Include {
 		tmpl.SSLServer.Certificate = filepath.Join(c.Base.Config.SiteServerTemplates.Certificates, tmpl.SSLServer.Certificate)
-		tmpl.SSLServer.ConfigRoot = c.Base.Config.ServerConfigRoot.Directory
+		tmpl.SSLServer.ConfigRoot = c.Base.Config.ServerConfigRoot.SSL
 		tmpl.SSLServer.Key = filepath.Join(c.Base.Config.SiteServerTemplates.Certificates, tmpl.SSLServer.Key)
-		tmpl.SSLServer.Template = filepath.Join(c.Base.Config.SiteServerTemplates.Directory, tmpl.SSLServer.Template)
+
+		if tmpl.SSLServer.Template != "" {
+			tmpl.SSLServer.Template = filepath.Join(c.Base.Config.SiteServerTemplates.Directory, tmpl.SSLServer.Template)
+		}
 	}
 	tmpl.Init()
 
@@ -60,6 +71,14 @@ func (c *HostmasterWS) ValidateInstallTemplate(tmpl *models.InstallTemplate) []*
 			"Does not exist.",
 		))
 	}
+
+	if tmpl.InstallInfo.TemplatePath == "" {
+		errorList = append(errorList, web_models.NewFormError(
+			"InstallInfo.TemplatePath",
+			"Is empty",
+		))
+	}
+
 	if !utils.FileExists(tmpl.InstallInfo.TemplatePath) {
 		errorList = append(errorList, web_models.NewFormError(
 			"InstallInfo.TemplatePath",
@@ -69,6 +88,13 @@ func (c *HostmasterWS) ValidateInstallTemplate(tmpl *models.InstallTemplate) []*
 
 	// Http server values.
 	if tmpl.HttpServer.Include {
+
+		if tmpl.HttpServer.Template == "" {
+			errorList = append(errorList, web_models.NewFormError(
+				"HttpServer.Template",
+				"Is empty",
+			))
+		}
 
 		if !utils.FileExists(tmpl.HttpServer.Template) {
 			errorList = append(errorList, web_models.NewFormError(
@@ -97,6 +123,13 @@ func (c *HostmasterWS) ValidateInstallTemplate(tmpl *models.InstallTemplate) []*
 
 	// SSL server values.
 	if tmpl.SSLServer.Include {
+
+		if tmpl.SSLServer.Template == "" {
+			errorList = append(errorList, web_models.NewFormError(
+				"SSLServer.Template",
+				"Is empty",
+			))
+		}
 
 		if !utils.FileExists(tmpl.SSLServer.Template) {
 			errorList = append(errorList, web_models.NewFormError(
@@ -193,6 +226,7 @@ func (c *HostmasterWS) RegisterFullSite(conn *websocket.Conn, req *web_models.We
 
 	// Initialize / correct values given to install template.
 	c.InitInstallTemplate(id, tmpl)
+
 	// Validate install template
 	errorList := c.ValidateInstallTemplate(tmpl)
 	if len(errorList) > 0 {
@@ -200,7 +234,26 @@ func (c *HostmasterWS) RegisterFullSite(conn *websocket.Conn, req *web_models.We
 		return
 	}
 
-	_, err = c.Site.SiteTemplateInstallation(tmpl)
+	// Send ok after validation.
+	resp.SetCallback(req).SetData(web_models.ResponseProcessStarting, nil)
+	err = conn.WriteJSON(resp)
+	if err != nil {
+		log.Println("Websocket message error: %v", err.Error())
+	}
+
+	// Sleep for second to give browser time to prepare..
+	time.Sleep(1 * time.Second)
+
+	// Create process status messager.
+	ps := web_models.NewWebProcess("Register full site", c.Channels.ConnStatusMsg, conn)
+	ps.Start()
+
+	sp, err := ps.AddSubProcess("Site Template Installation")
+	if err != nil {
+		log.Println(err)
+	}
+
+	_, err = c.Site.SiteTemplateInstallation(tmpl, sp)
 	if err != nil {
 		log.Println(err)
 		resp.SetError(http.StatusInternalServerError, err.Error())
@@ -208,7 +261,12 @@ func (c *HostmasterWS) RegisterFullSite(conn *websocket.Conn, req *web_models.We
 		return
 	}
 
-	_, err = c.HostMasterDB.CreateSite(tmpl)
+	sp, err = ps.AddSubProcess("Create site")
+	if err != nil {
+		log.Println(err)
+	}
+
+	_, err = c.HostMasterDB.CreateSite(tmpl, sp)
 	if err != nil {
 		log.Println(err)
 		resp.SetError(http.StatusInternalServerError, err.Error())
@@ -216,7 +274,12 @@ func (c *HostmasterWS) RegisterFullSite(conn *websocket.Conn, req *web_models.We
 		return
 	}
 
-	err = c.SiteTemplate.WriteApacheConfig(tmpl)
+	sp, err = ps.AddSubProcess("Write server configs")
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = c.SiteTemplate.WriteApacheConfig(tmpl, sp)
 	if err != nil {
 		log.Println(err)
 		resp.SetError(http.StatusInternalServerError, err.Error())
@@ -224,19 +287,35 @@ func (c *HostmasterWS) RegisterFullSite(conn *websocket.Conn, req *web_models.We
 		return
 	}
 
-	err = c.HostMasterDB.CreateServerConfigs(tmpl)
+	sp, err = ps.AddSubProcess("Write server configs to database")
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = c.HostMasterDB.CreateServerConfigs(tmpl, sp)
 
 	if err != nil {
 		log.Println(err)
 		resp.SetError(http.StatusInternalServerError, err.Error())
 		tmpl.RollBack.Execute()
 		return
+	}
+
+	sp, err = ps.AddSubProcess("Create site symlinks")
+	if err != nil {
+		log.Println(err)
 	}
 
 	domains := c.Site.GetSiteTemplateDomains(tmpl)
-	c.Site.CreateDomainSymlinks(tmpl, domains)
+	c.Site.CreateDomainSymlinks(tmpl, domains, sp)
 	// Create site domains.
-	err = c.HostMasterDB.CreateSiteDomains(tmpl, domains)
+
+	sp, err = ps.AddSubProcess("Create site symlinks to database")
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = c.HostMasterDB.CreateSiteDomains(tmpl, domains, sp)
 	if err != nil {
 		log.Println(err)
 		resp.SetError(http.StatusInternalServerError, err.Error())
@@ -244,7 +323,12 @@ func (c *HostmasterWS) RegisterFullSite(conn *websocket.Conn, req *web_models.We
 		return
 	}
 
-	err = c.Site.AddToHosts(tmpl, domains)
+	sp, err = ps.AddSubProcess("Add domains to hosts")
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = c.Site.AddToHosts(tmpl, domains, sp)
 	if err != nil {
 		log.Println(err)
 		resp.SetError(http.StatusInternalServerError, err.Error())
@@ -252,13 +336,20 @@ func (c *HostmasterWS) RegisterFullSite(conn *websocket.Conn, req *web_models.We
 		return
 	}
 
-	err = c.System.HttpServerRestart()
+	sp, err = ps.AddSubProcess("Restart http server")
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = c.System.HttpServerRestart(sp)
 	if err != nil {
 		log.Println(err)
 		resp.SetError(http.StatusInternalServerError, err.Error())
 		tmpl.RollBack.Execute()
 		return
 	}
+
+	ps.Finish()
 
 	resp.SetCallback(req).SetData(web_models.ResponseSiteCreated, nil)
 }

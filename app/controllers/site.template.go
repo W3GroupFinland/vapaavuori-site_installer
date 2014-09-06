@@ -24,7 +24,9 @@ func (c *SiteTemplate) ReadTemplate(file string) (*models.InstallTemplate, error
 	return &templ, nil
 }
 
-func (c *SiteTemplate) WriteApacheConfig(tmpl *models.InstallTemplate) error {
+func (c *SiteTemplate) WriteApacheConfig(tmpl *models.InstallTemplate, sp *models.SubProcess) error {
+	sp.Start()
+
 	outputFileName := tmpl.InstallInfo.SiteName
 
 	if tmpl.HttpServer.Include {
@@ -78,6 +80,7 @@ func (c *SiteTemplate) WriteApacheConfig(tmpl *models.InstallTemplate) error {
 		tmpl.SSLServer.ConfigFile = outFile
 	}
 
+	sp.Finish()
 	return nil
 }
 

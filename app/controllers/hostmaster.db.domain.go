@@ -8,7 +8,9 @@ import (
 	"log"
 )
 
-func (c *HostMasterDB) CreateSiteDomains(tmpl *models.InstallTemplate, domains *models.SiteDomains) error {
+func (c *HostMasterDB) CreateSiteDomains(tmpl *models.InstallTemplate, domains *models.SiteDomains, sp *models.SubProcess) error {
+	sp.Start()
+
 	if tmpl.InstallInfo.SiteId == 0 {
 		return errors.New("Site id can't be zero.")
 	}
@@ -28,6 +30,7 @@ func (c *HostMasterDB) CreateSiteDomains(tmpl *models.InstallTemplate, domains *
 		}
 	}
 
+	sp.Finish()
 	return nil
 }
 

@@ -7,7 +7,9 @@ import (
 	"log"
 )
 
-func (c *HostMasterDB) CreateSite(tmpl *models.InstallTemplate) (int64, error) {
+func (c *HostMasterDB) CreateSite(tmpl *models.InstallTemplate, sp *models.SubProcess) (int64, error) {
+	sp.Start()
+
 	var id int64
 	// Checking if platform exists. If not return error.
 	exists, err := c.PlatformIdExists(tmpl.InstallInfo.PlatformId)
@@ -55,6 +57,7 @@ func (c *HostMasterDB) CreateSite(tmpl *models.InstallTemplate) (int64, error) {
 	// Add rollback functionality.
 	tmpl.RollBack.AddDBIdFunction(c.RemoveSiteWithId, id)
 
+	sp.Finish()
 	return id, err
 }
 

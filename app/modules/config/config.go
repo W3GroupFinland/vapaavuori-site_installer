@@ -49,9 +49,9 @@ type Platform struct {
 }
 
 type HttpSsl struct {
-	HttpSsl     bool
-	CertFile    string
-	PrivateFile string
+	HttpSsl     bool   `gcfg:"use-ssl"`
+	CertFile    string `gcfg:"cert"`
+	PrivateFile string `gcfg:"private"`
 }
 
 type SiteTemplates struct {
@@ -64,7 +64,8 @@ type SiteServerTemplates struct {
 }
 
 type ServerConfigRoot struct {
-	Directory string
+	Http string `gcfg:"http-directory"`
+	SSL  string `gcfg:"ssl-directory"`
 }
 
 type Config struct {

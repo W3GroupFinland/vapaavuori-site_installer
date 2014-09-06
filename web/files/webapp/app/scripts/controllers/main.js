@@ -10,9 +10,20 @@
 angular.module('webappApp')
   .controller('MainCtrl', ['$scope', '$rootScope', 'HostmasterService', 'ModalService', '$route', '$routeParams',
   	function ($scope, $rootScope, HostmasterService, ModalService, $route, $routeParams) {
+
+    var setSelectedPlatform = function(selected, data) {
+    	return {  		
+    		Selected: selected,
+  			Data: data,
+  		};
+    };  
+
   	// Initialize values.
   	$scope.platforms = {};
-  	$scope.selectedPlatform = {};
+  	
+  	// Set selected platform default values.
+  	$scope.selectedPlatform = setSelectedPlatform(false, {});
+
   	$scope.showNewSiteForm = false;
 	
 	// Get platform listing.
@@ -41,7 +52,7 @@ angular.module('webappApp')
 
 	var getSelectedPlatform = function() {
 		if ($routeParams.name !== undefined) {
-			$scope.selectedPlatform = $scope.platforms[$routeParams.name];
+			$scope.selectedPlatform = setSelectedPlatform(true, $scope.platforms[$routeParams.name]);
 		}		
 	};
 
@@ -50,7 +61,7 @@ angular.module('webappApp')
 			return false;
 		}
 
-		if (platform.Name === $scope.selectedPlatform.Name) {
+		if (platform.Name === $scope.selectedPlatform.Data.Name) {
 			return true;
 		}
 
@@ -61,7 +72,7 @@ angular.module('webappApp')
 		if (platform.Registered === false) {
 			$scope.registerPlatformModal(platform);
 		} else {
-			$scope.selectedPlatform = platform;
+			$scope.selectedPlatform = setSelectedPlatform(true, platform);
 		}
 	};
 
@@ -74,7 +85,7 @@ angular.module('webappApp')
             modal.close.then(function(result) {
             	if (result === 1) {
             		HostmasterService.registerPlatform(platform);
-            		$scope.selectedPlatform = platform;
+            		$scope.selectedPlatform = setSelectedPlatform(true, platform);
             	}
             });
         });
@@ -82,11 +93,6 @@ angular.module('webappApp')
 
     $scope.platformRegistered = function(platform) {
     	return platform.Registered;
-    };
-
-    $scope.addNewSite = function(platform) {
-    	console.log(platform);
-    	$scope.showNewSiteForm = true;
     };
 
   }]);

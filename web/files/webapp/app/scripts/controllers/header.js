@@ -8,13 +8,18 @@
  * Controller of the webappApp
  */
 angular.module('webappApp')
-	.controller('HeaderCtl', ['$scope', 'HostmasterService', function ($scope, HostmasterService) {
+	.controller('HeaderCtl', ['$scope', '$location', 'HostmasterService', 
+		function ($scope, $location, HostmasterService) {
 
 	$scope.user = null;
 
 	// Get platform listing.
 	HostmasterService.getUser().then(function (result) {
 		$scope.user = result; // Set the result.
-		console.log($scope.user);
-	});  
+	});
+
+    $scope.navClass = function (page) {
+        var currentRoute = $location.path().substring(1) || 'platforms';
+        return page === currentRoute ? 'active' : '';
+    };
 }]);

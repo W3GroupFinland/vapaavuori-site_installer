@@ -11,7 +11,7 @@
     <!-- endbower -->
     <!-- endbuild -->
     <!-- build:css(.tmp) styles/main.css -->
-    <link rel="stylesheet" href="http://localhost:8888/files/webapp/styles/main.css">
+    <link rel="stylesheet" href="//local.hostmaster.fi/files/webapp/styles/main.css">
     <!-- endbuild -->
   </head>
   <body ng-app="webappApp">
@@ -23,12 +23,12 @@
     <div class="container-fluid">
       <div class="header" ng-controller="HeaderCtl">
         <ul class="nav nav-pills pull-right">
-          <li class="active"><a ng-href="#">Platforms</a></li>
-          <li><a ng-href="#/about">About</a></li>
-          <li><a ng-href="#">Contact</a></li>
+          <li ng-class="navClass('platforms')"><a ng-href='#'>Platforms</a></li>
+          <li ng-class="navClass('about')"><a ng-href='#/about'>About</a></li>
+          <li ng-class="navClass('contact')"><a ng-href='#/contact'>Contact</a></li>
         </ul>
         <h3>Hostmaster</h3>
-        <p>Welcome {{user.Mail}}</p>
+        <p>Welcome {{user.Data.Username}}</p>
       </div>
 
       <div class="well">
@@ -37,7 +37,7 @@
             <p class="text-muted">{{msg}}</p>
           </li>
         </ul>
-      </div>      
+      </div>
 
       <div ng-view=""></div>
 
@@ -59,43 +59,46 @@
     </script>
 
     <!--[if lt IE 9]>
-    <script src="http://localhost:8888/files/webapp/bower_components/es5-shim/es5-shim.js"></script>
-    <script src="http://localhost:8888/files/webapp/bower_components/json3/lib/json3.min.js"></script>
+    <script src="//local.hostmaster.fi/files/webapp/bower_components/es5-shim/es5-shim.js"></script>
+    <script src="//local.hostmaster.fi/files/webapp/bower_components/json3/lib/json3.min.js"></script>
     <![endif]-->
 
-    <script src="http://localhost:8888/files/webapp/bower_components/jquery/dist/jquery.js"></script>
-    <script src="http://localhost:8888/files/webapp/bower_components/es5-shim/es5-shim.js"></script>
-    <script src="http://localhost:8888/files/webapp/bower_components/angular/angular.js"></script>
-    <script src="http://localhost:8888/files/webapp/bower_components/json3/lib/json3.js"></script>
-    <script src="http://localhost:8888/files/webapp/bower_components/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/affix.js"></script>
-    <script src="http://localhost:8888/files/webapp/bower_components/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/alert.js"></script>
-    <script src="http://localhost:8888/files/webapp/bower_components/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/button.js"></script>
-    <script src="http://localhost:8888/files/webapp/bower_components/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/carousel.js"></script>
-    <script src="http://localhost:8888/files/webapp/bower_components/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/collapse.js"></script>
-    <script src="http://localhost:8888/files/webapp/bower_components/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/dropdown.js"></script>
-    <script src="http://localhost:8888/files/webapp/bower_components/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/tab.js"></script>
-    <script src="http://localhost:8888/files/webapp/bower_components/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/transition.js"></script>
-    <script src="http://localhost:8888/files/webapp/bower_components/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/scrollspy.js"></script>
-    <script src="http://localhost:8888/files/webapp/bower_components/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/modal.js"></script>
-    <script src="http://localhost:8888/files/webapp/bower_components/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/tooltip.js"></script>
-    <script src="http://localhost:8888/files/webapp/bower_components/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/popover.js"></script>
-    <script src="http://localhost:8888/files/webapp/bower_components/angular-resource/angular-resource.js"></script>
-    <script src="http://localhost:8888/files/webapp/bower_components/angular-cookies/angular-cookies.js"></script>
-    <script src="http://localhost:8888/files/webapp/bower_components/angular-sanitize/angular-sanitize.js"></script>
-    <script src="http://localhost:8888/files/webapp/bower_components/angular-animate/angular-animate.js"></script>
-    <script src="http://localhost:8888/files/webapp/bower_components/angular-touch/angular-touch.js"></script>
-    <script src="http://localhost:8888/files/webapp/bower_components/angular-route/angular-route.js"></script>
-    <script src="http://localhost:8888/files/webapp/bower_components/angular-modal-service/dst/angular-modal-service.js"></script>
+    <script src="//local.hostmaster.fi/files/webapp/bower_components/jquery/dist/jquery.js"></script>
+    <script src="//local.hostmaster.fi/files/webapp/bower_components/es5-shim/es5-shim.js"></script>
+    <script src="//local.hostmaster.fi/files/webapp/bower_components/angular/angular.js"></script>
+    <script src="//local.hostmaster.fi/files/webapp/bower_components/json3/lib/json3.js"></script>
+    <script src="//local.hostmaster.fi/files/webapp/bower_components/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/affix.js"></script>
+    <script src="//local.hostmaster.fi/files/webapp/bower_components/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/alert.js"></script>
+    <script src="//local.hostmaster.fi/files/webapp/bower_components/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/button.js"></script>
+    <script src="//local.hostmaster.fi/files/webapp/bower_components/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/carousel.js"></script>
+    <script src="//local.hostmaster.fi/files/webapp/bower_components/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/collapse.js"></script>
+    <script src="//local.hostmaster.fi/files/webapp/bower_components/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/dropdown.js"></script>
+    <script src="//local.hostmaster.fi/files/webapp/bower_components/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/tab.js"></script>
+    <script src="//local.hostmaster.fi/files/webapp/bower_components/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/transition.js"></script>
+    <script src="//local.hostmaster.fi/files/webapp/bower_components/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/scrollspy.js"></script>
+    <script src="//local.hostmaster.fi/files/webapp/bower_components/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/modal.js"></script>
+    <script src="//local.hostmaster.fi/files/webapp/bower_components/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/tooltip.js"></script>
+    <script src="//local.hostmaster.fi/files/webapp/bower_components/bootstrap-sass-official/vendor/assets/javascripts/bootstrap/popover.js"></script>
+    <script src="//local.hostmaster.fi/files/webapp/bower_components/angular-resource/angular-resource.js"></script>
+    <script src="//local.hostmaster.fi/files/webapp/bower_components/angular-cookies/angular-cookies.js"></script>
+    <script src="//local.hostmaster.fi/files/webapp/bower_components/angular-sanitize/angular-sanitize.js"></script>
+    <script src="//local.hostmaster.fi/files/webapp/bower_components/angular-animate/angular-animate.js"></script>
+    <script src="//local.hostmaster.fi/files/webapp/bower_components/angular-touch/angular-touch.js"></script>
+    <script src="//local.hostmaster.fi/files/webapp/bower_components/angular-route/angular-route.js"></script>
+    <script src="//local.hostmaster.fi/files/webapp/bower_components/angular-modal-service/dst/angular-modal-service.js"></script>
 
         <!-- build:js({.tmp,app}) scripts/scripts.js -->
         <script src="scripts/app.js"></script>
         <script src="scripts/services/hostmasterservice.js"></script>
         <script src="scripts/services/status.messages.js"></script>
+        <script src="scripts/services/config.js"></script>
         <script src="scripts/controllers/header.js"></script>        
         <script src="scripts/controllers/main.js"></script>
         <script src="scripts/controllers/about.js"></script>
         <script src="scripts/controllers/add.new.site.js"></script>
-         <script src="scripts/controllers/register.platform.js"></script>
+        <script src="scripts/controllers/register.platform.js"></script>
+        <script src="scripts/controllers/site.install.js"></script>
+        <script src="scripts/controllers/contact.js"></script>
         <!-- endbuild -->
 </body>
 </html>
