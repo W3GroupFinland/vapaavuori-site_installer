@@ -8,6 +8,8 @@ import (
 
 func (a *ApplicationTests) TestCreateConfigsAndDomains(t *testing.T) {
 	tmpl := a.TestCreateConfigsAndDomains_Data(t)
+	sp := a.GetTestSubProcessChannel()
+
 	defer tmpl.RollBack.Execute()
 
 	// Create new platform
@@ -33,8 +35,8 @@ func (a *ApplicationTests) TestCreateConfigsAndDomains(t *testing.T) {
 	}
 
 	// Add site to platform.
-	t.Log("Adding new site to platform..")
-	_, err = a.Application.Controllers.HostMasterDB.CreateSite(tmpl)
+	t.Log("Adding new site to platform..", sp)
+	_, err = a.Application.Controllers.HostMasterDB.CreateSite(tmpl, sp)
 	if err != nil {
 		t.Error(err)
 		return
@@ -61,7 +63,7 @@ func (a *ApplicationTests) TestCreateConfigsAndDomains(t *testing.T) {
 	}
 
 	t.Log("Creating server configs to hostmaster database..")
-	err = a.Application.Controllers.HostMasterDB.CreateServerConfigs(tmpl)
+	err = a.Application.Controllers.HostMasterDB.CreateServerConfigs(tmpl, sp)
 
 	if err != nil {
 		t.Error(err)
@@ -81,7 +83,7 @@ func (a *ApplicationTests) TestCreateConfigsAndDomains(t *testing.T) {
 
 	// Create site domains.
 	t.Log("Creating site domains.")
-	err = a.Application.Controllers.HostMasterDB.CreateSiteDomains(tmpl, domains)
+	err = a.Application.Controllers.HostMasterDB.CreateSiteDomains(tmpl, domains, sp)
 	if err != nil {
 		t.Error(err)
 	}

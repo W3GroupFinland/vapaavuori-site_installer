@@ -6,6 +6,10 @@ import (
 	"testing"
 )
 
+const (
+	ProcessStateTestFinished = 1000
+)
+
 type ApplicationTests struct {
 	Application *app.Application
 }
@@ -34,4 +38,24 @@ func (a *ApplicationTests) RandomizeDatabaseValues(tmpl *models.InstallTemplate)
 	tmpl.DatabaseName = models.RandomValue{Random: true}
 	tmpl.MysqlUserPrivileges = models.MysqlUserPrivileges{Privileges: []string{"ALL"}}
 	tmpl.MysqlGrantOption = models.MysqlGrantOption{Value: true}
+}
+
+// Creates sub process channel for tests and returns pointer to it.
+func (a ApplicationTests) GetTestSubProcessChannel() *models.SubProcess {
+	subChan := make(chan models.SubProcessState)
+
+	// Create listener to sub process state..
+	// We return from loop when sub process returns Process Finished.
+	go func() {
+		for {
+			state := <-subChan
+			if state.State == ProcessStateTestFinished {
+				break
+			}
+		}
+	}()
+
+	sp := models.SubProcess{StateChannel: subChan}
+
+	return &sp
 }

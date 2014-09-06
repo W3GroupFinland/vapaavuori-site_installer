@@ -10,6 +10,8 @@ func (a *ApplicationTests) TestCreateSite(t *testing.T) {
 		InstallInfo: models.SiteInstallInfo{PlatformName: "bugsteeere", DrupalRoot: "/bugsters/gatan"},
 	}
 
+	sp := a.GetTestSubProcessChannel()
+
 	// Initialize rollback functionality.
 	tmpl.RollBack = models.NewSiteRollBack(&tmpl)
 	defer tmpl.RollBack.Execute()
@@ -48,7 +50,7 @@ func (a *ApplicationTests) TestCreateSite(t *testing.T) {
 	}
 
 	// Add site to platform.
-	_, err = a.Application.Controllers.HostMasterDB.CreateSite(&tmpl)
+	_, err = a.Application.Controllers.HostMasterDB.CreateSite(&tmpl, sp)
 	if err != nil {
 		t.Error(err)
 		return
@@ -65,4 +67,8 @@ func (a *ApplicationTests) TestCreateSite(t *testing.T) {
 		t.Errorf("Site should exist in database.")
 		return
 	}
+
+	// Inform channel that test process is finished.
+	// This makes loop exit.
+	sp.StateChannel <- models.SubProcessState{State: ProcessStateTestFinished}
 }

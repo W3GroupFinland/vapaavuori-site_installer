@@ -25,7 +25,8 @@ certificates = /tmp
 directory = /tmp
 
 [server-config-root]
-directory = /tmp
+http-directory = /tmp
+ssl-directory = /tmp
 
 # Platform install root
 [platform]
