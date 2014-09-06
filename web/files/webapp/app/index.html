@@ -23,12 +23,12 @@
     <div class="container-fluid">
       <div class="header" ng-controller="HeaderCtl">
         <ul class="nav nav-pills pull-right">
-          <li class="active"><a ng-href="#">Platforms</a></li>
-          <li><a ng-href="#/about">About</a></li>
-          <li><a ng-href="#">Contact</a></li>
+          <li ng-class="navClass('platforms')"><a ng-href='#'>Platforms</a></li>
+          <li ng-class="navClass('about')"><a ng-href='#/about'>About</a></li>
+          <li ng-class="navClass('contact')"><a ng-href='#/contact'>Contact</a></li>
         </ul>
         <h3>Hostmaster</h3>
-        <p>Welcome {{user.Mail}}</p>
+        <p>Welcome {{user.Data.Username}}</p>
       </div>
 
       <div class="well">
@@ -37,7 +37,7 @@
             <p class="text-muted">{{msg}}</p>
           </li>
         </ul>
-      </div>      
+      </div>
 
       <div ng-view=""></div>
 
@@ -91,12 +91,14 @@
         <script src="scripts/app.js"></script>
         <script src="scripts/services/hostmasterservice.js"></script>
         <script src="scripts/services/status.messages.js"></script>
+        <script src="scripts/services/config.js"></script>
         <script src="scripts/controllers/header.js"></script>        
         <script src="scripts/controllers/main.js"></script>
         <script src="scripts/controllers/about.js"></script>
         <script src="scripts/controllers/add.new.site.js"></script>
         <script src="scripts/controllers/register.platform.js"></script>
         <script src="scripts/controllers/site.install.js"></script>
+        <script src="scripts/controllers/contact.js"></script>
         <!-- endbuild -->
 </body>
 </html>

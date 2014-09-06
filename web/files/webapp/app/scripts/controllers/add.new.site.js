@@ -11,7 +11,6 @@ angular.module('webappApp')
 	.controller('NewSiteCtrl', ['$scope', 'HostmasterService', '$routeParams', 'ModalService', 
 		function ($scope, HostmasterService, $routeParams, ModalService) {
 
-		console.log($routeParams);
 		$scope.platformName = '';
 		if ($routeParams.name !== undefined) {
 			$scope.platformName = $routeParams.name;
@@ -136,6 +135,5 @@ angular.module('webappApp')
 
 		$scope.reset();		
 		
-		console.log($scope, HostmasterService);
 }]);
 

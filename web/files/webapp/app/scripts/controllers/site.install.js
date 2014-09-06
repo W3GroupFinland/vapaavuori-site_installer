@@ -14,7 +14,7 @@ angular.module('webappApp')
 		$rootScope.$on('PROCESS_MESSAGE', function(_, args) {
 			$scope.processMsg.push(args.Data.Message);
 			$scope.$apply();
-		});		
+		});
 
 		$scope.close = function(result) {
 			close(result, 500); // close, but give 500ms for bootstrap to animate
