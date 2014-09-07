@@ -349,6 +349,7 @@ func (c *HostmasterWS) RegisterFullSite(conn *websocket.Conn, req *web_models.We
 		return
 	}
 
+	c.PlatformsUpdated()
 	ps.Finish()
 
 	resp.SetCallback(req).SetData(web_models.ResponseSiteCreated, nil)

@@ -17,6 +17,7 @@ type Domain struct {
 	Type           string
 	SiteId         int64
 	ServerConfigId int64
+	Id             int64
 }
 
 func NewSiteDomains() *SiteDomains {

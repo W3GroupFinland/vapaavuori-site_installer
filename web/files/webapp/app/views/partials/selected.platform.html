@@ -1,0 +1,25 @@
+<div ng-show="selectedPlatform.Data.Sites" class="platform-info">
+	<table class="table table-hover">
+		<thead>
+			<tr>
+				<th>Site ID</th>
+				<th>Site name</th>
+				<th>Install type</th>
+				<th>Show details</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat="(idx, site) in selectedPlatform.Data.Sites">
+				<td>{{site.Id}}</td>
+				<td>{{site.Name}}</td>
+				<td>{{site.InstallType}}</td>
+				<td>
+					<button class="btn btn-default" 
+					ng-click="templates.set('siteDetails'); showSiteDetails(site);">
+					Show details
+					</button>
+        </td>
+			</tr>
+		</tbody>
+	</table>
+</div>

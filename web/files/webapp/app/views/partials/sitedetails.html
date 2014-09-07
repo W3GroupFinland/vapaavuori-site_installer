@@ -1,0 +1,81 @@
+<div class="site-details" ng-show="siteDetails">
+	
+	<h4>BASIC INFO</h4>
+	<table class="table table-hover">
+		<thead>
+			<tr>
+				<th>Site ID</th>
+				<th>Site name</th>
+				<th>Install type</th>
+				<th>Sub directory</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td>{{siteDetails.Id}}</td>
+				<td>{{siteDetails.Name}}</td>
+				<td>{{siteDetails.InstallType}}</td>
+				<td>{{siteDetails.SubDirectory}}</td>
+			</tr>
+		</tbody>	
+	</table>
+
+	<div ng-show="siteDetails.HTTPConfigs">
+		<h4>HTTP</h4>
+		<table class="table table-hover">
+			<thead>
+				<tr>
+					<th>Config file</th>
+					<th>Port</th>
+					<th>Domains</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="config in siteDetails.HTTPConfigs">
+					<td>{{config.ConfigFile}}</td>
+					<td>{{config.Port}}</td>
+					<td>
+						<ul class="list-unstyled">
+							<li ng-repeat="domain in config.Domains" style="margin-bottom=20px;">
+								<strong>Name:</strong> {{domain.DomainName}}<br>
+								<strong>Host:</strong> {{domain.Host}}<br>
+								<strong>Type:</strong> {{domain.Type}}<br>
+							</li>
+						</ul>
+					</td>
+
+				</tr>
+			</tbody>	
+		</table>
+	</div>
+
+	<div ng-show="siteDetails.SSLConfigs">
+		<h4>HTTPS</h4>
+		<table class="table table-hover">
+			<thead>
+				<tr>
+					<th>Config file</th>
+					<th>Port</th>
+					<th>Domains</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="config in siteDetails.SSLConfigs">
+					<td>{{config.ConfigFile}}</td>
+					<td>{{config.Port}}</td>
+					<td>
+						<ul class="list-unstyled">
+							<li ng-repeat="domain in config.Domains" style="margin-bottom=20px;">
+								<strong>Name:</strong> {{domain.DomainName}}<br>
+								<strong>Host:</strong> {{domain.Host}}<br>
+								<strong>Type:</strong> {{domain.Type}}<br>
+							</li>
+						</ul>
+					</td>
+
+				</tr>
+			</tbody>	
+		</table>
+	</div>
+
+</div>

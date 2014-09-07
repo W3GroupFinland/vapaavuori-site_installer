@@ -28,7 +28,11 @@ angular
 		.when('/platform/:name', {
 			templateUrl: 'views/main.html',
 			controller: 'MainCtrl',
-		})		
+		})
+		.when('/platform/:name/site/:index', {
+			templateUrl: 'views/main.html',
+			controller: 'MainCtrl',
+		})				
 		.when('/platform/new-site/:name', {
 			templateUrl: 'views/add-new-site.html',
 			controller: 'MainCtrl',

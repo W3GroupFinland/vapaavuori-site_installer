@@ -96,17 +96,13 @@ angular.module('webappApp')
 				$scope.errors = [error];
 				return;
 			}
-
-			console.log(site.InstallInfo);
 			
 			site.InstallInfo.PlatformId = parseInt(site.InstallInfo.PlatformId);
 			site.InstallInfo.PlatformName = $scope.platformName;
 			
 			$scope.master = angular.copy(site);
-			console.log('SITE', site);
 
 			HostmasterService.registerFullSite(site).then(function (result) {
-				console.log('RESULT', result);
 				if (result.Type === 'FORM_ERROR') {
 					$scope.errors = result.Data;
 					return;

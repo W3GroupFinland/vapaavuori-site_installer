@@ -42,11 +42,10 @@ func (c *HostmasterWS) Init() {
 	}
 
 	// Populate initial platform list.
-	platforms, err := c.System.GetDrupalPlatforms()
+	err := c.UpdatePlatforms()
 	if err != nil {
-		log.Fatal("Error getting drupal platforms in initialization.")
+		log.Fatalf("Updating platforms failed. Error: %v", err.Error())
 	}
-	c.Platforms = platforms
 
 	// Initialize channels
 	c.Channels.PlatformsUpdated = make(chan bool)
@@ -57,6 +56,12 @@ func (c *HostmasterWS) Init() {
 }
 
 func (c *HostmasterWS) PlatformsUpdated() {
+	err := c.UpdatePlatforms()
+	if err != nil {
+		log.Printf("Updating platforms failed. Error: %v", err.Error())
+		return
+	}
+
 	c.Channels.PlatformsUpdated <- true
 }
 

@@ -29,6 +29,14 @@ func (a *ApplicationTests) RunTests(t *testing.T) {
 	a.TestCreateSite(t)
 	// Test site creation, database server configs and domains.
 	a.TestCreateConfigsAndDomains(t)
+	// Test platform sites get from database.
+	a.TestGetPlatformSites(t)
+	// Test site domains from database.
+	a.TestGetSiteDomains(t)
+	// Test site server configs from database.
+	a.TestGetSiteServerConfigs(t)
+	// Test site domains map to correct server configs.
+	a.TestDomainsMapToConfigs(t)
 }
 
 func (a *ApplicationTests) RandomizeDatabaseValues(tmpl *models.InstallTemplate) {
