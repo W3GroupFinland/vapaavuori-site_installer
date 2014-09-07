@@ -11,6 +11,13 @@ func (a *ApplicationTests) TestCreateConfigsAndDomains(t *testing.T) {
 	sp := a.GetTestSubProcessChannel()
 
 	defer tmpl.RollBack.Execute()
+	a.CreateConfigAndDomains(tmpl, sp, t)
+}
+
+func (a *ApplicationTests) CreateConfigAndDomains(
+	tmpl *models.InstallTemplate,
+	sp *models.SubProcess,
+	t *testing.T) {
 
 	// Create new platform
 	t.Log("Creating new platform to database..")

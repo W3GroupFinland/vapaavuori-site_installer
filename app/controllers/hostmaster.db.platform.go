@@ -96,3 +96,42 @@ func (c *HostMasterDB) PlatformExists(name string, rootFolder string) (bool, int
 
 	return true, id, nil
 }
+
+func (c *HostMasterDB) GetPlatformSites(platformId int64) ([]*models.SiteInfo, error) {
+	var sites []*models.SiteInfo
+	q := "SELECT s.* FROM platform p "
+	q += "JOIN site s ON s.platform_id = p.id "
+	q += "WHERE p.id = ?"
+
+	rows, err := c.Base.DataStore.DB.Query(q, platformId)
+	if err != nil {
+		return sites, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		si := models.SiteInfo{}
+		err := rows.Scan(
+			&si.Id,
+			&si.PlatformId,
+			&si.Name,
+			&si.DbName,
+			&si.DbUser,
+			&si.SubDirectory,
+			&si.InstallType,
+			&si.Template,
+		)
+		if err != nil {
+			return sites, err
+		}
+
+		sites = append(sites, &si)
+	}
+
+	if err := rows.Err(); err != nil {
+		return sites, err
+	}
+
+	return sites, nil
+}

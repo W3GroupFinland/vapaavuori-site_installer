@@ -29,6 +29,7 @@ angular.module('webappApp')
 	// Get platform listing.
 	HostmasterService.getPlatforms().then(function (result) {
 		$scope.platforms = platformsByName(result.Data); // Set the result.
+		console.log($scope.platforms);
 	  
 	  	getSelectedPlatform();
 	});

@@ -22,6 +22,7 @@ type PlatformInfo struct {
 	Registered bool
 	PlatformId int64
 	RootInfo   *SiteRootInfo
+	Sites      []*SiteInfo
 }
 
 type PlatformInputRequest struct {
@@ -63,4 +64,8 @@ func (pl *PlatformList) ToSliceList() []*PlatformInfo {
 	}
 
 	return items
+}
+
+func (pi *PlatformInfo) AddSite(site *SiteInfo) {
+	pi.Sites = append(pi.Sites, site)
 }

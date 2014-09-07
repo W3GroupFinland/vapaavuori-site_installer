@@ -113,3 +113,44 @@ func (c *HostMasterDB) RemoveServerConfigWithId(id int64) error {
 
 	return nil
 }
+
+func (c *HostMasterDB) GetSiteServerConfigs(siteId int64) ([]*models.DatabaseServerConfig, error) {
+	var configs []*models.DatabaseServerConfig
+	q := "SELECT sc.* FROM site s "
+	q += "JOIN server_config sc ON sc.site_id = s.id "
+	q += "WHERE s.id = ?"
+
+	rows, err := c.Base.DataStore.DB.Query(q, siteId)
+	if err != nil {
+		return configs, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		c := models.DatabaseServerConfig{}
+		err := rows.Scan(
+			&c.Id,
+			&c.SiteId,
+			&c.ServerType,
+			&c.Template,
+			&c.Port,
+			&c.ConfigRoot,
+			&c.ConfigFile,
+			&c.Secured,
+			&c.Cert,
+			&c.CertKey,
+		)
+		if err != nil {
+			return configs, err
+		}
+
+		configs = append(configs, &c)
+	}
+
+	if err := rows.Err(); err != nil {
+		return configs, err
+	}
+
+	return configs, nil
+}

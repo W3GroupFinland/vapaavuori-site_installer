@@ -89,3 +89,40 @@ func (c *HostMasterDB) SiteExists(platformId int64, subDirectory string) (bool, 
 
 	return false, nil
 }
+
+func (c *HostMasterDB) GetSiteDomains(siteId int64) ([]*models.Domain, error) {
+	var domains []*models.Domain
+	q := "SELECT d.* FROM site s "
+	q += "JOIN domain d ON d.site_id = s.id "
+	q += "WHERE s.id = ?"
+
+	rows, err := c.Base.DataStore.DB.Query(q, siteId)
+	if err != nil {
+		return domains, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		d := models.Domain{}
+		err := rows.Scan(
+			&d.Id,
+			&d.SiteId,
+			&d.ServerConfigId,
+			&d.Type,
+			&d.DomainName,
+			&d.Host,
+		)
+		if err != nil {
+			return domains, err
+		}
+
+		domains = append(domains, &d)
+	}
+
+	if err := rows.Err(); err != nil {
+		return domains, err
+	}
+
+	return domains, nil
+}
