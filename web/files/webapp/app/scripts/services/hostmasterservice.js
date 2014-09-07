@@ -56,8 +56,6 @@ angular.module('webappApp')
             Data: data.Data,
           };
 
-          console.log(data);
-
           // TODO: Find some more elegant way to do this.
           $rootScope.$broadcast(data.Type, obj);
           return;

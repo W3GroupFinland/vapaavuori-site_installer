@@ -4,7 +4,7 @@
     <div class="col-sm-3 well">
       <ul class="nav nav-pills nav-stacked">
         <li ng-repeat="platform in platforms" ng-class="(platformSelected(platform)) ? 'active' : ''">
-          <a href="#/platform/{{platform.Name}}" ng-click="selectPlatform(platform)">
+          <a href="#/platform/{{platform.Name}}" ng-click="selectPlatform(platform);">
           {{platform.Name}} ({{platform.Registered ? "Registered" : "Unregistered"}})
           </a>
         </li>
@@ -13,13 +13,22 @@
 
     <div class="col-sm-9">
       <div ng-show="selectedPlatform" ng-if="selectedPlatform.Selected">
-        <h3>Platform: {{selectedPlatform.Data.Name}}</h3>
-        <div ng-if="platformRegistered(selectedPlatform.Data)">
-          <a href="#/platform/new-site/{{selectedPlatform.Data.Name}}">
-            <span class="glyphicon glyphicon-plus"></span>
-            <span class="glyphicon-class">Add new site</span>
-          </a>
+        <div class="row" style="margin-bottom:20px;">
+          <h3 class="col-sm-9 pull-left">Platform: {{selectedPlatform.Data.Name}}</h3>
+          <div ng-if="platformRegistered(selectedPlatform.Data)">
+            <a class="pull-right" style="margin-top:20px;" href="#/platform/new-site/{{selectedPlatform.Data.Name}}">
+              <button class="btn btn-primary">
+                <span class="glyphicon glyphicon-plus"></span>
+                <span class="glyphicon-class">Add new site</span>
+              </button>
+            </a>
+          </div>
         </div>
+
+        <div ng-if="platformRegistered(selectedPlatform.Data)">
+          <div ng-include="templates.selected()"></div>
+        </div>
+
       </div>
       <div ng-show="selectedPlatform" ng-if="!selectedPlatform.Selected">
         <h3>No platform selected</h3>

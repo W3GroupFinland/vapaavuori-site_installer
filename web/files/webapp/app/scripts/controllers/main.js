@@ -8,15 +8,22 @@
  * Controller of the webappApp
  */
 angular.module('webappApp')
-  .controller('MainCtrl', ['$scope', '$rootScope', 'HostmasterService', 'ModalService', '$route', '$routeParams',
-  	function ($scope, $rootScope, HostmasterService, ModalService, $route, $routeParams) {
+  .controller('MainCtrl', 
+  	['$scope', 
+  	'$rootScope', 
+  	'HostmasterService', 
+  	'ModalService', 
+  	'Templates', 
+  	'$route', 
+  	'$routeParams',
+  	function ($scope, $rootScope, HostmasterService, ModalService, Templates, $route, $routeParams) {
 
     var setSelectedPlatform = function(selected, data) {
     	return {  		
     		Selected: selected,
   			Data: data,
   		};
-    };  
+    };
 
   	// Initialize values.
   	$scope.platforms = {};
@@ -25,11 +32,23 @@ angular.module('webappApp')
   	$scope.selectedPlatform = setSelectedPlatform(false, {});
 
   	$scope.showNewSiteForm = false;
+
+  	// Set templates to scope.
+  	$scope.templates = Templates.newTemplates();
+  	$scope.templates.add('siteList', 'views/partials/selected.platform.html');
+  	$scope.templates.add('siteDetails', 'views/partials/sitedetails.html');
+  	$scope.templates.set('siteList');
+
+  	// Initialize site details.
+  	$scope.siteDetails = {};
+
+    $scope.showSiteDetails = function(site) {
+    	$scope.siteDetails = site;
+    };
 	
 	// Get platform listing.
 	HostmasterService.getPlatforms().then(function (result) {
 		$scope.platforms = platformsByName(result.Data); // Set the result.
-		console.log($scope.platforms);
 	  
 	  	getSelectedPlatform();
 	});
@@ -75,6 +94,8 @@ angular.module('webappApp')
 		} else {
 			$scope.selectedPlatform = setSelectedPlatform(true, platform);
 		}
+
+		$scope.templates.set('siteList');
 	};
 
     $scope.registerPlatformModal = function(platform) {
