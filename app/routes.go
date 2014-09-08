@@ -3,6 +3,7 @@ package app
 import (
 	"github.com/tuomasvapaavuori/site_installer/app/controllers/web"
 	base "github.com/tuomasvapaavuori/site_installer/app/modules/app_base"
+	"github.com/tuomasvapaavuori/site_installer/app/modules/utils"
 	"log"
 	"net/http"
 )
@@ -63,8 +64,13 @@ func (a *Application) RegisterRoutes() {
 }
 
 func (a *Application) RegisterPublicFileServer() {
+	fullPath, err := utils.GetFileFullPath("web/files/public")
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	// File server
-	fs := base.NewFileServer("web/files/public", "/public/")
+	fs := base.NewFileServer(fullPath, "/public/")
 
 	http.Handle("/public/", fs)
 }
@@ -80,8 +86,13 @@ func (a *Application) RegisterWebAppServer() {
 		log.Println("Serving application files in development mode.")
 	}
 
+	fullPath, err := utils.GetFileFullPath(ap)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	// Application server
-	as := base.NewFileServer(ap, "/app/").
+	as := base.NewFileServer(fullPath, "/app/").
 		AddAcl(app.WebControllers.Get("app.controllers.web.user").AclHandler("LoggedInAcl"))
 
 	http.Handle("/app/", as)
