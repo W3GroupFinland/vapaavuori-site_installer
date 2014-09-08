@@ -109,6 +109,20 @@ func (a *Application) Run() {
 	a.RegisterControllers()
 	a.RegisterWebControllers()
 
+	// After registering controllers we can check hosts file.
+	ok, err := a.Controllers.Site.CheckHostsSnippets(a.Base.Config.Hosts.File)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	// If application hosts snippets not found, try to create them.
+	if !ok {
+		err := a.Controllers.Site.CreateHostsSnippets(a.Base.Config.Hosts.File)
+		if err != nil {
+			log.Fatalln(err)
+		}
+	}
+
 	// Register routes.
 	a.RegisterRoutes()
 
