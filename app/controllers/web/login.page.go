@@ -43,6 +43,6 @@ func (c *Login) LoginPostHandler(rw http.ResponseWriter, r *http.Request) {
 	} else {
 		// Set user session.
 		c.Base.SetSessionKey("client-logged", user.Username, rw, r)
-		http.Redirect(rw, r, "/files/webapp/app/#", http.StatusSeeOther)
+		http.Redirect(rw, r, "/app", http.StatusSeeOther)
 	}
 }
