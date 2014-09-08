@@ -6,9 +6,12 @@ import (
 
 type Login struct {
 	*User
+	RedirectAfter string
 }
 
-func (c *Login) Init() {}
+func (c *Login) Init() {
+	c.RedirectAfter = "/app"
+}
 
 func (c *Login) ControllerName() string {
 	return "app.controllers.web.login"

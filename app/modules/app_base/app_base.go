@@ -22,6 +22,10 @@ type AppBase struct {
 	Http           Http
 	DataStore      database.DataStore
 	Commands       Commands
+	Flags          struct {
+		DevMode *bool
+		Port    *int
+	}
 }
 
 type Commands struct {

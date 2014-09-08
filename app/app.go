@@ -1,7 +1,6 @@
 package app
 
 import (
-	"flag"
 	"fmt"
 	"github.com/tuomasvapaavuori/site_installer/app/controllers"
 	a "github.com/tuomasvapaavuori/site_installer/app/modules/app_base"
@@ -82,6 +81,9 @@ func (a *Application) RegisterControllers() {
 }
 
 func (a *Application) Run() {
+	// Get command line flags.
+	a.GetAppCommandArgs()
+
 	defer a.Base.DataStore.DB.Close()
 
 	// Read web templates.
@@ -95,24 +97,24 @@ func (a *Application) Run() {
 		log.Println(err)
 	}
 
-	// Command line flags
-	port := flag.Int("port", a.Base.Config.Host.Port, "port to serve on")
-
 	// Register controllers.
 	a.RegisterControllers()
 	a.RegisterWebControllers()
+
+	// Register routes.
 	a.RegisterRoutes()
-	a.RegisterFileServer(a.GetFolderPath("web/files", "directory", "Directory of web files"))
-	a.RegisterWebAppServer(a.GetFolderPath("web/files/webapp/dist", "appDirectory", "Directory of web application files"))
+
+	// Register file servers.
+	a.RegisterPublicFileServer()
+	a.RegisterWebAppServer()
 
 	a.Controllers.Drush.Which()
-	a.ParseCommandLineArgs()
 
 	a.Base.AppKeys.SetSecret("client.secret", "something-wery-secret")
 	a.Base.InitSessions("something-wery-secret")
 
-	log.Printf("Running on port %d\n", *port)
-	addr := fmt.Sprintf("%v:%d", a.Base.Config.Host.Name, *port)
+	log.Printf("Running on port %d\n", *a.Base.Flags.Port)
+	addr := fmt.Sprintf("%v:%d", a.Base.Config.Host.Name, *a.Base.Flags.Port)
 
 	// Check for https settings.
 	if a.Base.Config.Ssl.HttpSsl {
@@ -126,15 +128,4 @@ func (a *Application) Run() {
 			fmt.Println(err)
 		}
 	}
-}
-
-func (a *Application) GetFolderPath(path string, name string, explanation string) *string {
-	filesPath, err := utils.GetFileFullPath(path)
-	if err != nil {
-		log.Fatalln("Application web files folder doesn't exist.")
-	}
-	dir := flag.String(name, filesPath, explanation)
-	flag.Parse()
-
-	return dir
 }

@@ -54,6 +54,11 @@ type HttpSsl struct {
 	PrivateFile string `gcfg:"private"`
 }
 
+type UnixUser struct {
+	User  string
+	Group string
+}
+
 type SiteTemplates struct {
 	Directory string
 }
@@ -74,6 +79,7 @@ type Config struct {
 	Mysql               Mysql
 	Drush               Drush
 	HttpServer          HttpServer `gcfg:"http-server"`
+	HttpUser            UnixUser   `gcfg:"http-user"`
 	Backup              Backup
 	Hosts               Hosts
 	Platform            Platform

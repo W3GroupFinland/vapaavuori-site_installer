@@ -14,8 +14,8 @@ import (
 
 func (c *HostmasterWS) InitInstallTemplate(platformId int64, tmpl *models.InstallTemplate) {
 	tmpl.InstallInfo.PlatformId = platformId
-	tmpl.InstallInfo.HttpUser = "_www"
-	tmpl.InstallInfo.HttpGroup = "_www"
+	tmpl.InstallInfo.HttpUser = c.Base.Config.HttpUser.User
+	tmpl.InstallInfo.HttpGroup = c.Base.Config.HttpUser.Group
 	tmpl.InstallInfo.DrupalRoot = filepath.Join(c.Base.Config.Platform.Directory, tmpl.InstallInfo.PlatformName)
 
 	if tmpl.InstallInfo.TemplatePath != "" {
