@@ -14,6 +14,11 @@ dbname = hostmaster
 [http-server]
 restart = apachectl restart
 
+# Settings for http user
+[http-user]
+user = apache
+group = apache
+
 [site-server-templates]
 directory = /var/www/site_installer/templates/server/vhosts
 certificates = /var/www/site_installer/templates/server/certs
@@ -22,11 +27,12 @@ certificates = /var/www/site_installer/templates/server/certs
 directory = /var/www/site_installer/templates/sites
 
 [server-config-root]
-directory = /var/www/site_installer/server_config/vhost.d
+http-directory = /var/www/site_installer/server_config/vhost.d
+ssl-directory = /var/www/site_installer/server_config/ssl.vhost.d
 
 # Platform install root
 [platform]
-directory = /var/www/site_installer/platforms
+directory = /var/www/site_installer/platforms-enabled
 
 # Backup directory
 [backup]
@@ -36,6 +42,11 @@ directory = /var/www/site_installer/tmp
 [host]
 name = localhost
 port = 8888
+
+[ssl]
+use-ssl = false
+cert = 
+private = 
 
 # Hosts file directory
 [hosts]
