@@ -71,6 +71,14 @@ func (s *Site) StandardInstallation(tmpl *models.InstallTemplate, installType st
 		utils.RemoveDirectory,
 		filepath.Join(info.DrupalRoot, "sites", info.SubDirectory))
 
+	// Chown install subdirectory to deploy user.
+	err = utils.ChownRecursive(filepath.Join(info.DrupalRoot, "sites", info.SubDirectory),
+		s.Base.Config.DeployUser.User, s.Base.Config.DeployUser.Group)
+	if err != nil {
+		log.Println(err)
+		return db, err
+	}
+
 	return db, nil
 }
 
@@ -146,6 +154,15 @@ func (s *Site) SiteTemplateInstallation(tmpl *models.InstallTemplate, sp *models
 	}
 
 	sp.Update("Chown web user folders.")
+
+	// Chown install subdirectory to deploy user.
+	err = utils.ChownRecursive(filepath.Join(info.DrupalRoot, "sites", info.SubDirectory),
+		s.Base.Config.DeployUser.User, s.Base.Config.DeployUser.Group)
+	if err != nil {
+		log.Println(err)
+		return db, err
+	}
+
 	err = utils.ChownRecursive(filepath.Join(info.DrupalRoot, "sites", info.SubDirectory, "private"), info.HttpUser, info.HttpGroup)
 	if err != nil {
 		log.Println(err)
@@ -225,6 +242,11 @@ func (s *Site) CreateDomainSymlinks(tmpl *models.InstallTemplate, domains *model
 				err := os.Symlink(pathToSubDir, pathToDomain)
 				if err != nil {
 					log.Printf("Error creating symlink: %v\n", err.Error())
+				}
+
+				err = utils.ChownRecursive(pathToDomain, s.Base.Config.DeployUser.User, s.Base.Config.DeployUser.Group)
+				if err != nil {
+					log.Println(err)
 				}
 				tmpl.RollBack.AddFileFunction(utils.RemoveFile, pathToDomain)
 			}
