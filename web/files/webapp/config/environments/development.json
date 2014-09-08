@@ -1,3 +1,3 @@
 {
-  "wsServer": "wss://local.hostmaster.fi/app/ws"
+  "wsServer": "wss://local.hostmaster.fi:8443/app/ws"
 }
