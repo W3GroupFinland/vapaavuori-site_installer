@@ -98,18 +98,12 @@ func (a *Application) Run() {
 	// Command line flags
 	port := flag.Int("port", a.Base.Config.Host.Port, "port to serve on")
 
-	filesPath, err := utils.GetFileFullPath("web/files")
-	if err != nil {
-		log.Fatalln("Application web files folder doesn't exist.")
-	}
-	dir := flag.String("directory", filesPath, "directory of web files")
-	flag.Parse()
-
 	// Register controllers.
 	a.RegisterControllers()
 	a.RegisterWebControllers()
 	a.RegisterRoutes()
-	a.RegisterFileServer(dir)
+	a.RegisterFileServer(a.GetFolderPath("web/files", "directory", "Directory of web files"))
+	a.RegisterWebAppServer(a.GetFolderPath("web/files/webapp/dist", "appDirectory", "Directory of web application files"))
 
 	a.Controllers.Drush.Which()
 	a.ParseCommandLineArgs()
@@ -132,4 +126,15 @@ func (a *Application) Run() {
 			fmt.Println(err)
 		}
 	}
+}
+
+func (a *Application) GetFolderPath(path string, name string, explanation string) *string {
+	filesPath, err := utils.GetFileFullPath(path)
+	if err != nil {
+		log.Fatalln("Application web files folder doesn't exist.")
+	}
+	dir := flag.String(name, filesPath, explanation)
+	flag.Parse()
+
+	return dir
 }

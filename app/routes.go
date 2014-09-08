@@ -49,14 +49,6 @@ func (a *Application) RegisterRoutes() {
 				Handler: app.WebControllers.Get("app.controllers.web.login").Handler("Logout")}}})
 
 	app.AddRoute(&base.Route{
-		Path: "/app",
-		Handlers: []base.RouteHandler{
-			base.RouteHandler{
-				Method:  "GET",
-				Handler: app.WebControllers.Get("app.controllers.web.application.page").Handler("ApplicationPageHandler")}},
-		Acl: []base.HttpAclHandlerFunc{app.WebControllers.Get("app.controllers.web.user").AclHandler("LoggedInAcl")}})
-
-	app.AddRoute(&base.Route{
 		Path: "/app/ws",
 		Handlers: []base.RouteHandler{
 			base.RouteHandler{
@@ -73,4 +65,11 @@ func (a *Application) RegisterFileServer(dir *string) {
 	fs := http.Dir(*dir)
 	fileHandler := http.FileServer(fs)
 	http.Handle("/files/", http.StripPrefix("/files/", fileHandler))
+}
+
+func (a *Application) RegisterWebAppServer(dir *string) {
+	// Application server
+	fs := http.Dir(*dir)
+	fileHandler := http.FileServer(fs)
+	http.Handle("/app/", http.StripPrefix("/app/", fileHandler))
 }
