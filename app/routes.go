@@ -3,6 +3,7 @@ package app
 import (
 	"github.com/tuomasvapaavuori/site_installer/app/controllers/web"
 	base "github.com/tuomasvapaavuori/site_installer/app/modules/app_base"
+	"log"
 	"net/http"
 )
 
@@ -13,7 +14,8 @@ func (a *Application) RegisterWebControllers() {
 	// User controller
 	app.WebControllers.Set(&base.Controller{user})
 	// Login controller
-	app.WebControllers.Set(&base.Controller{&controllers.Login{user}})
+	//login.User = user
+	app.WebControllers.Set(&base.Controller{&controllers.Login{User: user}})
 	// Application page controller
 	app.WebControllers.Set(&base.Controller{&controllers.ApplicationPage{user}})
 	// Hostmaster websocket controller
@@ -60,16 +62,27 @@ func (a *Application) RegisterRoutes() {
 	app.RegisterRoutes()
 }
 
-func (a *Application) RegisterFileServer(dir *string) {
+func (a *Application) RegisterPublicFileServer() {
 	// File server
-	fs := http.Dir(*dir)
-	fileHandler := http.FileServer(fs)
-	http.Handle("/files/", http.StripPrefix("/files/", fileHandler))
+	fs := base.NewFileServer("web/files/public", "/public/")
+
+	http.Handle("/public/", fs)
 }
 
-func (a *Application) RegisterWebAppServer(dir *string) {
+func (a *Application) RegisterWebAppServer() {
+	app := a.Base
+
+	// If production mode, serve files from dist.
+	ap := "web/files/webapp/dist/"
+	if *a.Base.Flags.DevMode {
+		// If development mode serve from webapp.
+		ap = "web/files/webapp/app/"
+		log.Println("Serving application files in development mode.")
+	}
+
 	// Application server
-	fs := http.Dir(*dir)
-	fileHandler := http.FileServer(fs)
-	http.Handle("/app/", http.StripPrefix("/app/", fileHandler))
+	as := base.NewFileServer(ap, "/app/").
+		AddAcl(app.WebControllers.Get("app.controllers.web.user").AclHandler("LoggedInAcl"))
+
+	http.Handle("/app/", as)
 }
