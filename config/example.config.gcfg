@@ -19,6 +19,11 @@ restart = apachectl restart
 user = apache
 group = apache
 
+# Settings for deploy user
+[deploy-user]
+user = deploy
+group = deploy
+
 [site-server-templates]
 directory = /var/www/site_installer/templates/server/vhosts
 certificates = /var/www/site_installer/templates/server/certs

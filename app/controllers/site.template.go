@@ -95,6 +95,13 @@ func (c *SiteTemplate) WriteServerConfig(tmpl *models.InstallTemplate, outputFil
 		return err
 	}
 
+	// Chown newly created server config to deploy user.
+	err = utils.ChownRecursive(fullPath, c.Base.Config.DeployUser.User, c.Base.Config.DeployUser.Group)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
 	defer func() {
 		if err := fo.Close(); err != nil {
 			panic(err)

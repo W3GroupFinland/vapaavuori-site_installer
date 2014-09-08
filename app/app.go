@@ -62,6 +62,14 @@ func Init(config []byte) *Application {
 			Add(a.Base.Config.Ssl.PrivateFile, "SSL Certificate Private file")
 	}
 
+	if !utils.UserExists(a.Base.Config.HttpUser.User) {
+		log.Fatalln("Check that http user exists.")
+	}
+
+	if !utils.UserExists(a.Base.Config.DeployUser.User) {
+		log.Fatalln("Check that deploy user exists.")
+	}
+
 	rf.Require()
 
 	return &a

@@ -80,6 +80,7 @@ type Config struct {
 	Drush               Drush
 	HttpServer          HttpServer `gcfg:"http-server"`
 	HttpUser            UnixUser   `gcfg:"http-user"`
+	DeployUser          UnixUser   `gcfg:"deploy-user"`
 	Backup              Backup
 	Hosts               Hosts
 	Platform            Platform
