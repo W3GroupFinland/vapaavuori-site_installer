@@ -1,18 +1,18 @@
 'use strict';
 
-describe('Service: hostmasterService', function () {
+describe('Service: HostmasterService', function () {
 
   // load the service's module
   beforeEach(module('webappApp'));
 
   // instantiate service
-  var hostmasterService;
-  beforeEach(inject(function (_hostmasterService_) {
-    hostmasterService = _hostmasterService_;
+  var HostmasterService;
+  beforeEach(inject(function (_HostmasterService_) {
+    HostmasterService = _HostmasterService_;
   }));
 
   it('should do something', function () {
-    expect(!!hostmasterService).toBe(true);
+    expect(!!HostmasterService.getPlatforms()).toBe(true);
   });
 
 });
