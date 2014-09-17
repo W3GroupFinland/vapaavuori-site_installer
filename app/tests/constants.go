@@ -17,6 +17,16 @@ dbname = hostmaster_test
 [http-server]
 restart = apachectl restart
 
+# Settings for http user
+[http-user]
+user = _www
+group = _www
+
+# Settings for deploy user
+[deploy-user]
+user = _www
+group = _www
+
 [site-server-templates]
 directory = /tmp
 certificates = /tmp
@@ -35,6 +45,16 @@ directory = /tmp
 # Backup directory
 [backup]
 directory = /tmp
+
+# Settings for application web host
+[host]
+name = localhost
+port = 8888
+
+[ssl]
+use-ssl = false
+cert = 
+private = 
 
 # Hosts file directory
 [hosts]
