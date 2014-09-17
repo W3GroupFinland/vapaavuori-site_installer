@@ -2,5 +2,5 @@
 
 angular.module('services.config', [])
   .constant('configuration', {
-    wsServer: 'wss://local.hostmaster.fi:8443/app/ws'
+    wsServer: 'wss://tivia-hostmaster.dyndns.org:8443/app/ws'
   });
