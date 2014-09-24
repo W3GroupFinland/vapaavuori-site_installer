@@ -85,6 +85,7 @@ func (d *Drush) Which() (string, error) {
 
 func (d *Drush) Run(args ...string) (string, error) {
 	cmd := exec.Command("drush", args...)
+	fmt.Println(cmd)
 	var out bytes.Buffer
 	cmd.Stdout = &out
 	// Run command.
