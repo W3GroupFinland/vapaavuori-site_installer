@@ -2,13 +2,16 @@ package controllers
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
+	"fmt"
 	"github.com/tuomasvapaavuori/site_installer/app/models"
 	a "github.com/tuomasvapaavuori/site_installer/app/modules/app_base"
 	"github.com/tuomasvapaavuori/site_installer/app/modules/database"
 	"github.com/tuomasvapaavuori/site_installer/app/modules/utils"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 )
@@ -239,15 +242,18 @@ func (s *Site) CreateDomainSymlinks(tmpl *models.InstallTemplate, domains *model
 
 		if _, err := os.Stat(pathToDomain); err != nil {
 			if os.IsNotExist(err) {
-				err := os.Symlink(pathToSubDir, pathToDomain)
-				if err != nil {
-					log.Printf("Error creating symlink: %v\n", err.Error())
-				}
-
-				err = utils.ChownRecursive(pathToDomain, s.Base.Config.DeployUser.User, s.Base.Config.DeployUser.Group)
+				cmd := exec.Command("su", "-", s.Base.Config.DeployUser.User, "-c", fmt.Sprintf("ln -s %v %v", pathToSubDir, pathToDomain))
+				fmt.Println(cmd)
+				var out bytes.Buffer
+				cmd.Stdout = &out
+				// Run command.
+				err := cmd.Run()
+				// Check for errors.
 				if err != nil {
 					log.Println(err)
 				}
+
+				log.Println(out.String())
 				tmpl.RollBack.AddFileFunction(utils.RemoveFile, pathToDomain)
 			}
 		}
